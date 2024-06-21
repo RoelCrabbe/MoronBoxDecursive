@@ -1105,7 +1105,7 @@ function Dcr_Init()
 		DecursiveMainBar:Hide();
     else
 		DecursiveMainBar:ClearAllPoints();
-		DecursiveMainBar:SetPoint("CENTER", UIParent, "TOP", 0, -100)
+		DecursiveMainBar:SetPoint("CENTER", UIParent, "TOP", 0, -50)
 		DecursiveMainBar:Show();
     end
 
