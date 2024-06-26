@@ -160,54 +160,8 @@ local RestorSelfAutoCast = false;
 -- The printing functions {{{
 -------------------------------------------------------------------------------
 
-function MakePlayerName(note)
-	if note == UnitName( "player") then
-
-		if UnitClass("player") == "Warrior" then return "|cffC79C6E"..note.."|r"
-		elseif UnitClass("player") == "Hunter" then return "|cffABD473"..note.."|r"
-		elseif UnitClass("player") == "Mage" then return "|cff69CCF0"..note.."|r"
-		elseif UnitClass("player") == "Rogue" then return "|cffFFF569"..note.."|r"
-		elseif UnitClass("player") == "Warlock" then return "|cff9482C9"..note.."|r"
-		elseif UnitClass("player") == "Druid" then return "|cffFF7D0A"..note.."|r"
-		elseif UnitClass("player") == "Shaman" then return "|cff0070DE"..note.."|r"
-		elseif UnitClass("player") == "Priest" then return "|cffFFFFFF"..note.."|r"
-		elseif UnitClass("player") == "Paladin" then return "|cffF58CBA"..note.."|r"
-		end
-
-	elseif UnitInRaid("player") then
-
-		for i = 1, GetNumRaidMembers() do
-			if UnitName("raid"..i) == note then
-				if UnitClass("raid"..i) == "Warrior" then return "|cffC79C6E"..note.."|r"
-				elseif UnitClass("raid"..i) == "Hunter" then return "|cffABD473"..note.."|r"
-				elseif UnitClass("raid"..i) == "Mage" then return "|cff69CCF0"..note.."|r"
-				elseif UnitClass("raid"..i) == "Rogue" then return "|cffFFF569"..note.."|r"
-				elseif UnitClass("raid"..i) == "Warlock" then return "|cff9482C9"..note.."|r"
-				elseif UnitClass("raid"..i) == "Druid" then return "|cffFF7D0A"..note.."|r"
-				elseif UnitClass("raid"..i) == "Shaman" then return "|cff0070DE"..note.."|r"
-				elseif UnitClass("raid"..i) == "Priest" then return "|cffFFFFFF"..note.."|r"
-				elseif UnitClass("raid"..i) == "Paladin" then return "|cffF58CBA"..note.."|r"
-				end
-			end
-		end
-
-	elseif UnitInParty("target") then
-
-		for i = 1, GetNumPartyMembers() do
-			if UnitName("party"..i) == note then
-				if UnitClass("party"..i) == "Warrior" then return "|cffC79C6E"..note.."|r"
-				elseif UnitClass("party"..i) == "Hunter" then return "|cffABD473"..note.."|r"
-				elseif UnitClass("party"..i) == "Mage" then return "|cff69CCF0"..note.."|r"
-				elseif UnitClass("party"..i) == "Rogue" then return "|cffFFF569"..note.."|r"
-				elseif UnitClass("party"..i) == "Warlock" then return "|cff9482C9"..note.."|r"
-				elseif UnitClass("party"..i) == "Druid" then return "|cffFF7D0A"..note.."|r"
-				elseif UnitClass("party"..i) == "Shaman" then return "|cff0070DE"..note.."|r"
-				elseif UnitClass("party"..i) == "Priest" then return "|cffFFFFFF"..note.."|r"
-				elseif UnitClass("party"..i) == "Paladin" then return "|cffF58CBA"..note.."|r"
-				end
-			end
-		end
-	end
+function MakePlayerName(name)
+	return GetColors(name)
 end
 
 function MakeAfflictionName(name)
@@ -1068,7 +1022,7 @@ function MBD_Post_Init:OnUpdate()
 
 	Dcr_PrintMessage("Has been succesfully loaded.")
 
-	if (UnitClass("player") == "Rogue" or UnitClass("player") == "Warrior" or UnitClass("player") == "Hunter" or UnitClass("player") == "Warlock") then
+	if (UnitClass("player") == "Rogue" or UnitClass("player") == "Warrior" or UnitClass("player") == "Hunter" or UnitClass("player") == "Warlock" or MB_mySpecc == "Feral") then
         Dcr_DisableAddon()
     end
 
@@ -1105,7 +1059,7 @@ function Dcr_Init()
 		DecursiveMainBar:Hide();
     else
 		DecursiveMainBar:ClearAllPoints();
-		DecursiveMainBar:SetPoint("CENTER", UIParent, "TOP", 0, -50)
+		DecursiveMainBar:SetPoint("CENTER", UIParent, "TOP", 0, -100)
 		DecursiveMainBar:Show();
     end
 

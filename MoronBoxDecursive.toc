@@ -1,7 +1,8 @@
 ## Interface: 11200
-## Title: MoronBoxDecursive by |cff00ccffMoRoN|r
-## Author: MoRoN
-## Notes: |cff00ccffMoronSort|r is a lightweight decursing addon, optimized for Multiboxing.
+## Title: MoronBoxDecursive
+## Author: MoRoN 
+## Notes: Pairs with MoRoN-Box for handeling decursing
+## Dependencies: MoronBox
 ## SavedVariablesPerCharacter: Drc_Options, Dcr_Saved, Drc_Settings
 
 Core\Localization.lua
