@@ -2,7 +2,7 @@
 ## Title: MoronBoxDecursive
 ## Author: MoRoN 
 ## Notes: Pairs with MoRoN-Box for handeling decursing
-## Dependencies: MoronBox
+## Dependencies: MoronBoxCore
 ## SavedVariablesPerCharacter: Drc_Options, Dcr_Saved, Drc_Settings
 
 Core\Localization.lua
