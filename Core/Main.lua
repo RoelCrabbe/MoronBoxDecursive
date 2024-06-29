@@ -1,87 +1,89 @@
 -------------------------------------------------------------------------------
--- variables {{{
+-- InterFace Frames {{{
 -------------------------------------------------------------------------------
+
+MBD = CreateFrame("Frame", "MBD", UIParent)
+
+-------------------------------------------------------------------------------
+-- The Stored Variables {{{
+-------------------------------------------------------------------------------
+
+MBD.DefaultOptions = {
+    PriorityList = { },
+    SkipList = { },
+    Slider = {
+		Seconds_On_Blacklist = 4,
+		ScanFrequency = 0.4
+	},
+    CheckBox = {
+		Check_For_Abolish = true,
+		Always_Use_Best_Spell = true,
+		Random_Order = true
+	}
+}
+
+-------------------------------------------------------------------------------
+-- DO NOT CHANGE {{{
+-------------------------------------------------------------------------------
+
+MBD.Session = {
+    PlayerName = UnitName("player"),
+	PlayerClass = UnitClass("player"),
+    InCombat = nil,
+    Elapsed = 0,
+    CureOrderList = {
+		[1] = MBD_MAGIC,
+		[2] = MBD_CURSE,
+		[3] = MBD_POISON,
+		[4] = MBD_DISEASE
+    };
+}
+
+-------------------------------------------------------------------------------
+-- Core Event Code {{{
+-------------------------------------------------------------------------------
+
+do
+    for _, event in {
+        "ADDON_LOADED",
+        "PLAYER_ENTERING_WORLD",
+        "PLAYER_LEAVING_WORLD",
+        "PLAYER_ENTER_COMBAT",
+        "PLAYER_LEAVE_COMBAT",
+        "SPELLCAST_STOP",
+        "UNIT_PET",
+        "SPELLS_CHANGED",
+        "LEARNED_SPELL_IN_TAB",
+        "UI_ERROR_MESSAGE",
+        "PARTY_MEMBERS_CHANGED",
+        "PARTY_LEADER_CHANGED",
+    } 
+    do 
+        MBD:RegisterEvent(event)
+    end
+end
+
+
+function MBD:OnEvent()
+    if ( event == "ADDON_LOADED" and arg1 == "MoronBoxDecursive" ) then
+        MBD_SetupSavedVariables()
+    end
+end
+
+MBD:SetScript("OnEvent", MBD.OnEvent) 
+
+function MBD:OnUpdate()
+
+end
+
+MBD:SetScript("OnUpdate", MBD.OnUpdate) 
+
+function MBD_SetupSavedVariables()
+    if not MoronBoxDecursive_Options then 
+        MoronBoxDecursive_Options = MBD.DefaultOptions
+    end
+end
 
 -------------------------------------------------------------------------------
 -- The stored variables {{{
 -------------------------------------------------------------------------------
-Dcr_Saved = {
-    -- this is the items that are stored...
-
-    Dcr_Print_DEBUG_bis = false;
-
-    -- this is the priority list of people to cure
-    PriorityList = { };
-
-    -- this is the people to skip
-    SkipList = { };
-
-    -- this is wether or not to show the "live" list	
-    Hide_LiveList = false;
-
-    -- This will turn on and off the sending of messages to the default chat frame
-    Print_ChatFrame = false;
-
-    -- this will send the messages to a custom frame that is moveable	
-    Print_CustomFrame = true;
-
-    -- this will disable error messages
-    Print_Error = true;
-
-    -- check for abolish before curing poison or disease
-    Check_For_Abolish = true;
-
-    -- this is "fix" for the fact that rank 1 of dispell magic does not always remove
-    -- the high level debuffs properly. This carrys over to other things.
-    AlwaysUseBestSpell = true;
-
-    -- should we do the orders randomly?
-    Random_Order = false;
-
-    -- should we scan pets
-    Scan_Pets = true;
-
-    -- should we ignore stealthed units
-    Ingore_Stealthed = false;
-
-    -- how many to show in the livelist
-    Amount_Of_Afflicted = 5;
-
-    -- how many seconds to "black list" someone with a failed spell
-    CureBlacklist	= 5.0;
-
-    -- how often to poll for afflictions in seconds
-    ScanTime = 0.2;
-
-    -- Are prio list members protected from blacklisting?
-    DoNot_Blacklist_Prio_List = false;
-
-
-    -- Display text above in the custom frame
-    CustomeFrameInsertBottom = false;
-
-    -- Disable tooltips in affliction list
-    AfflictionTooltips = true;
-
-    -- Reverse LiveList Display
-    ReverseLiveDisplay = false;
-
-    -- Hide everything but the livelist
-    Hidden = false;
-
-    -- if true then the live list will show only if the main window is shown
-    LiveListTied = false;
-    
-    -- allow to changes the default output window
-    Dcr_OutputWindow = DEFAULT_CHAT_FRAME;
-
-    -- cure order list
-    CureOrderList = {
-	[1] = DCR_MAGIC,
-	[2] = DCR_CURSE,
-	[3] = DCR_POISON,
-	[4] = DCR_DISEASE
-    }
-
-
-}; -- // }}}

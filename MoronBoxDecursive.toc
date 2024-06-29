@@ -1,9 +1,11 @@
 ## Interface: 11200
-## Title: MoronBoxDecursive
-## Author: MoRoN 
-## Notes: Pairs with MoRoN-Box for handeling decursing
+## Title: MoronBoxDecursive by |cff00ccffMoRoN|r
+## Author: MoRoN
+## Notes: |cff00ccffMoronBoxDecursive|r is a advanced but light weight decursing addon, based on Decursive.
 ## Dependencies: MoronBoxCore
 ## LoadOnDemand: 0
 ## SavedVariablesPerCharacter: MoronBoxDecursive_Options
+
+Utility\Localization.lua
 
 Core\Main.lua
