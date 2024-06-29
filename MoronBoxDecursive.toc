@@ -3,9 +3,7 @@
 ## Author: MoRoN 
 ## Notes: Pairs with MoRoN-Box for handeling decursing
 ## Dependencies: MoronBoxCore
-## SavedVariablesPerCharacter: Drc_Options, Dcr_Saved, Drc_Settings
+## LoadOnDemand: 0
+## SavedVariablesPerCharacter: MoronBoxDecursive_Options
 
-Core\Localization.lua
-Core\Config.lua
 Core\Main.lua
-Core\MoronBoxDecursive.xml
