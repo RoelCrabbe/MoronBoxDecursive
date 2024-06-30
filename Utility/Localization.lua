@@ -48,6 +48,12 @@ MBD_SPELL_PURGE               = 'Purge'
 MBD_PET_FEL_CAST              = "Devour Magic"
 MBD_PET_DOOM_CAST             = "Dispel Magic"
 
+MBD_INVISIBLE_LIST = {
+    ["Prowl"]       = true,
+    ["Stealth"]     = true,
+    ["Shadowmeld"]  = true,
+}
+
 MBD_IGNORELIST = {
     ["Banish"]      = true,
     ["Phase Shift"] = true,
