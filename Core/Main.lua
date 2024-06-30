@@ -4,6 +4,7 @@
 
 MBD = CreateFrame("Frame", "MBD", UIParent)
 MBD.ScanningTooltip = CreateFrame("GameTooltip", "MBD_ScanningTooltip", nil, "GameTooltipTemplate")
+MBD_ScanningTooltip:SetOwner(UIParent, "ANCHOR_NONE")
 
 -------------------------------------------------------------------------------
 -- The Stored Variables {{{
@@ -68,7 +69,7 @@ MBD.Session = {
             Curse_1 = { 0, "", "" },
             Can_Cure_Curse = false            
         },
-        Spell_Cooldown_Check = { 0, "", "" }
+        Cooldown_Check = { 0, "", "" }
     },
     Blacklist = {
         List = {},
@@ -181,6 +182,14 @@ function MBD:OnUpdate()
         if (MBD.Session.Debuff.Time < 0) then
             MBD.Session.Debuff.Time = 0
             MBD.Session.Debuff.Cache = {}
+        end
+    end
+
+    for Unit in MBD.Session.Blacklist.List do
+        MBD.Session.Blacklist.List[Unit] = MBD.Session.Blacklist.List[Unit] - MBD.Session.Elapsed
+        if (MBD.Session.Blacklist.List[Unit] < 0) then
+            Print("awo")
+            MBD.Session.Blacklist.List[Unit] = nil
         end
     end
 end
@@ -309,7 +318,7 @@ function MBD_Configure()
     end
 
     MBD_VerifyOrderList()
-    -- PrintSpells()
+    PrintSpells()
 end
 
 function MBD_ReConfigure()
@@ -581,6 +590,7 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
 
     -- Prevent re-entry if already cleaning
     if MBD.Session.Target.AlreadyCleanning then
+        Print("yea")
         return false
     end
 
@@ -651,6 +661,7 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
         if MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic then
             for _, unit in ipairs(MBD.Session.Group.Unit_Array) do
                 if not MBD.Session.Blacklist.List[unit] and UnitIsVisible(unit) and UnitIsCharmed(unit) then
+                    Print(unit)
                     if MBD_CureUnit(unit) then
                         tCleaned = true
                         break
@@ -663,6 +674,7 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
         if not tCleaned then
             for _, unit in ipairs(MBD.Session.Group.Unit_Array) do
                 if not MBD.Session.Blacklist.List[unit] and UnitIsVisible(unit) and not UnitIsCharmed(unit) then
+                    Print(unit)
                     if MBD_CureUnit(unit) then
                         tCleaned = true
                         break
@@ -675,6 +687,7 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
         if not tCleaned then
             for unit in pairs(MBD.Session.Blacklist.List) do
                 if not MBD.Session.Blacklist.CleanList[unit] and UnitExists(unit) and UnitIsVisible(unit) then
+                    Print(unit)
                     if MBD_CureUnit(unit) then
                         MBD.Session.Blacklist.List[unit] = nil
                         tCleaned = true
@@ -709,14 +722,15 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
     return tCleaned
 end 
 
-function MBD_GetUnitDebuffName(Unit, i, DebuffTexture)
+function MBD_GetUnitdBuffName(Unit, i, DebuffTexture)
     local dBuffName
 
     if not MBD.Session.Debuff.Cache[DebuffTexture] then
+
         MBD_ScanningTooltipTextLeft1:SetText("")
         MBD_ScanningTooltip:SetUnitDebuff(Unit, i)
         dBuffName = MBD_ScanningTooltipTextLeft1:GetText()
-
+Print(dBuffName)
         if dBuffName == nil then
             return false
         elseif dBuffName ~= "" then
@@ -733,11 +747,11 @@ end
 
 
 function MBD_GetUnitDebuff(Unit, i)
-    
+
     local dBuffTexture, dBuffApplications, dBuffType = UnitDebuff(Unit, i)
 
     if (dBuffTexture) then
-	    dBuffName = MBD_GetUnitDebuffName(Unit, i, dBuffTexture)
+	    dBuffName = MBD_GetUnitdBuffName(Unit, i, dBuffTexture)
 	    return dBuffName, dBuffType, dBuffApplications, dBuffTexture
     else
 	    return false, false, false, false
@@ -769,38 +783,41 @@ function MBD_GetUnitDebuffAll(unit)
     return ThisUnitDebuffs
 end
 
+
+-- /run MBD_Clean()
+
 function MBD_CureUnit(Unit)
-    
+
     local MagicCount, DiseaseCount, PoisonCount, CurseCount = 0, 0, 0, 0
     local _, UnitClass = UnitClass(Unit)
     local AllUnitDebuffs = MBD_GetUnitDebuffAll(Unit)
     local Result = false
     
-    for debuffName, debuffParams in AllUnitDebuffs do
+    for dBuffName, dBuffParams in AllUnitDebuffs do
         local shouldContinue = true
 
-        if MBD_IGNORELIST[debuffName] then
+        if MBD_IGNORELIST[dBuffName] then
             return false
         end
 
-        if MBD_SKIP_LIST[debuffName] then
+        if MBD_SKIP_LIST[dBuffName] then
             shouldContinue = false
         end
 
-        if MBD.Session.InCombat and MBD_SKIP_BY_CLASS_LIST[UnitClass] and MBD_SKIP_BY_CLASS_LIST[UnitClass][debuffName] then
+        if MBD.Session.InCombat and MBD_SKIP_BY_CLASS_LIST[UnitClass] and MBD_SKIP_BY_CLASS_LIST[UnitClass][dBuffName] then
             shouldContinue = false
         end
 
         if shouldContinue then
-            if debuffParams.dBuffType and debuffParams.dBuffType ~= "" then
-                if debuffParams.dBuffType == MBD_MAGIC then
-                    MagicCount = MagicCount + debuffParams.dBuffApplications + 1
-                elseif debuffParams.dBuffType == MBD_DISEASE then
-                    DiseaseCount = DiseaseCount + debuffParams.dBuffApplications + 1
-                elseif debuffParams.dBuffType == MBD_POISON then
-                    PoisonCount = PoisonCount + debuffParams.dBuffApplications + 1
-                elseif debuffParams.dBuffType == MBD_CURSE then
-                    CurseCount = CurseCount + debuffParams.dBuffApplications + 1
+            if dBuffParams.dBuffType and dBuffParams.dBuffType ~= "" then
+                if dBuffParams.dBuffType == MBD_MAGIC then
+                    MagicCount = MagicCount + dBuffParams.dBuffApplications + 1
+                elseif dBuffParams.dBuffType == MBD_DISEASE then
+                    DiseaseCount = DiseaseCount + dBuffParams.dBuffApplications + 1
+                elseif dBuffParams.dBuffType == MBD_POISON then
+                    PoisonCount = PoisonCount + dBuffParams.dBuffApplications + 1
+                elseif dBuffParams.dBuffType == MBD_CURSE then
+                    CurseCount = CurseCount + dBuffParams.dBuffApplications + 1
                 end
             end
         end
@@ -813,38 +830,88 @@ function MBD_CureUnit(Unit)
         DiseaseCount = DiseaseCount
     }
     
-    for i = 1, 4 do
-        if MBD.Session.Target.Curing_Functions[i] then
-            Result = MBD.Session.Target.Curing_Functions[i](DecurseCount, Unit)
-            if Result then break end
+    -- for i = 1, 4 do
+    --     if MBD.Session.Target.Curing_Functions[i] then
+    --         Result = MBD.Session.Target.Curing_Functions[i](DecurseCount, Unit)
+    --         if Result then break end
+    --     end
+    -- end
+
+    if (not Result) then
+        Result = MBD_Cure_Magic(DecurseCount, Unit)
+    end
+
+    return Result
+end
+
+function MBD_Cast_CureSpell(spellID, Unit, AfflictionType, ClearCurrentTarget)
+
+    local name = UnitName(Unit)
+
+    if spellID[1] == 0 then
+        return false
+    end
+
+    if spellID[2] ~= BOOKTYPE_PET and not CheckInteractDistance(Unit, 4) then
+        return false
+    end
+
+    local spellName = GetSpellName(spellID[1], spellID[2])
+
+    if ClearCurrentTarget then
+        if not UnitIsUnit("target", Unit) then
+            ClearTarget()
+        end
+    elseif UnitIsFriend("player", "target") then
+        if not UnitIsUnit("target", Unit) then
+            ClearTarget()
         end
     end
-    return Result
+
+    if spellID[2] == BOOKTYPE_PET or spellID[3] == MBD_SPELL_PURGE then
+        TargetUnit(Unit)
+    end
+
+    MBD.Session.CastingOn = Unit
+    CastSpell(spellID[1], spellID[2])
+
+    if MBD.Session.Target.Restore and (spellID[2] == BOOKTYPE_PET or spellID[3] == MBD_SPELL_PURGE) then
+        TargetUnit("playertarget")
+    else
+        if SpellIsTargeting() then
+            SpellTargetUnit(Unit)
+        end
+    end
+
+    if SpellIsTargeting() then
+        SpellStopTargeting()
+    end
+
+    return true
 end
 
 function MBD_Cure_Magic(counts, Unit)
 
+    Print(counts)
     if not (MBD.Session.Spells.Magic.Can_Cure_Magic or MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic) or counts.MagicCount == 0 then
         return false
     end
 
     if MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic and UnitIsCharmed(Unit) and UnitCanAttack("player", Unit) then
         if MBD.Session.Spells.Magic.Enemy_Magic_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or counts.MagicCount > 1 or MBD.Session.Spells.Magic.Magic_1[1] == 0) then
-            return Dcr_Cast_CureSpell(MBD.Session.Spells.Magic.Enemy_Magic_2, Unit, MBD_CHARMED, true)
+            return MBD_Cast_CureSpell(MBD.Session.Spells.Magic.Enemy_Magic_2, Unit, MBD_CHARMED, true)
         else
-            return Dcr_Cast_CureSpell(MBD.Session.Spells.Magic.Enemy_Magic_1, Unit, MBD_CHARMED, true)
+            return MBD_Cast_CureSpell(MBD.Session.Spells.Magic.Enemy_Magic_1, Unit, MBD_CHARMED, true)
         end
     elseif MBD.Session.Spells.Magic.Can_Cure_Magic and not UnitCanAttack("player", Unit) then
         if MBD.Session.Spells.Magic.Magic_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or counts.MagicCount > 1 or MBD.Session.Spells.Magic.Magic_1[1] == 0) then
-            return Dcr_Cast_CureSpell(MBD.Session.Spells.Magic.Magic_2, Unit, MBD_MAGIC, MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic)
+            return MBD_Cast_CureSpell(MBD.Session.Spells.Magic.Magic_2, Unit, MBD_MAGIC, MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic)
         else
-            return Dcr_Cast_CureSpell(MBD.Session.Spells.Magic.Magic_1, Unit, MBD_MAGIC, MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic)
+            return MBD_Cast_CureSpell(MBD.Session.Spells.Magic.Magic_1, Unit, MBD_MAGIC, MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic)
         end
     end
     return false
 end
-
-
 
 
 
@@ -907,4 +974,3 @@ function PrintSpells()
         Print("  Can Cure Curse: " .. tostring(MBD.Session.Spells.Curse.Can_Cure_Curse))
     end
 end
-
