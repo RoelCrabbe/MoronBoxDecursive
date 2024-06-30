@@ -66,7 +66,9 @@ end
 
 function MBD:OnEvent()
     if ( event == "ADDON_LOADED" and arg1 == "MoronBoxDecursive" ) then
+        
         MBD_SetupSavedVariables()
+        MBD:CreateWindows()
     end
 end
 

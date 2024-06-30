@@ -9,3 +9,6 @@
 Utility\Localization.lua
 
 Core\Main.lua
+
+Display\Actions.lua
+Display\Display.lua
