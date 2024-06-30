@@ -29,8 +29,14 @@ MBD.DefaultOptions = {
 MBD.Session = {
     PlayerName = UnitName("player"),
 	PlayerClass = UnitClass("player"),
+    CastingOn = nil,
     InCombat = nil,
     Elapsed = 0,
+    Reconfigure = {
+        Enable = false,
+        Time = 0,
+        Delay = 1
+    },
     CureOrderList = {
 		[1] = MBD_MAGIC,
 		[2] = MBD_CURSE,
@@ -62,6 +68,10 @@ MBD.Session = {
             Can_Cure_Curse = false            
         },
         Spell_Cooldown_Check = { 0, "", "" }
+    },
+    Blacklist = {
+        List = {},
+        CleanList = {}
     }
 }
 
@@ -77,7 +87,6 @@ do
         "PLAYER_ENTER_COMBAT",
         "PLAYER_LEAVE_COMBAT",
         "SPELLCAST_STOP",
-        "UNIT_PET",
         "SPELLS_CHANGED",
         "LEARNED_SPELL_IN_TAB",
         "UI_ERROR_MESSAGE",
@@ -96,13 +105,53 @@ function MBD:OnEvent()
         MBD_SetupSavedVariables()
         MBD:CreateWindows()
         MBD_Configure()
+    
+    elseif ( event == "SPELLCAST_STOP" or event ==  "SPELLCAST_INTERRUPTED" or event == "SPELLCAST_FAILED" ) then
+
+        MBD.Session.CastingOn = nil
+
+	elseif ( event == "SPELLCAST_START" ) then
+
+
+    elseif ( event == "UI_ERROR_MESSAGE" ) then
+
+        if arg1 == SPELL_FAILED_LINE_OF_SIGHT or arg1 == SPELL_FAILED_BAD_TARGETS then
+            MBD_SpellCastFailed()
+        end
+
+    elseif ( event == "LEARNED_SPELL_IN_TAB" ) then
+
+		MBD_Configure()
+
+    elseif ( event == "SPELLS_CHANGED" and arg1 == nil and not MBD.Session.Reconfigure.Enable ) then
+
+        MBD.Session.Reconfigure.Enable = true
+
+    elseif ( event == "PLAYER_REGEN_ENABLED" ) then
+
+		MBD.Session.InCombat = nil
+
+	elseif ( event == "PLAYER_REGEN_DISABLED" ) then
+
+		MBD.Session.InCombat = true
     end
 end
 
 MBD:SetScript("OnEvent", MBD.OnEvent) 
 
 function MBD:OnUpdate()
+    MBD.Session.Elapsed = arg1
 
+    if MBD.Session.Reconfigure.Enable then
+        MBD.Session.Reconfigure.Time = MBD.Session.Reconfigure.Time + MBD.Session.Elapsed
+        if ( MBD.Session.Reconfigure.Time >= MBD.Session.Reconfigure.Delay ) then
+
+            MBD.Session.Reconfigure.Time = 0
+            
+            MBD_ReConfigure()
+            MBD.Session.Reconfigure.Enable = false
+        end
+    end
 end
 
 MBD:SetScript("OnUpdate", MBD.OnUpdate) 
@@ -116,6 +165,11 @@ end
 -------------------------------------------------------------------------------
 -- Spell Configure {{{
 -------------------------------------------------------------------------------
+
+function MBD_Init()
+
+    MBD_Configure()
+end
 
 function MBD_Configure()
 
@@ -132,7 +186,7 @@ function MBD_Configure()
     MBD.Session.Spells.Poison.Poison_1 = { 0, "", "" }
     MBD.Session.Spells.Poison.Poison_2 = { 0, "", "" }
     MBD.Session.Spells.Poison.Can_Cure_Poison = false
-    MBD.Session.Spells.Curse.Curse_1_1 = { 0, "", "" }
+    MBD.Session.Spells.Curse.Curse_1 = { 0, "", "" }
     MBD.Session.Spells.Curse.Can_Cure_Curse = false
 
     local DecurseSpellArray = {
@@ -171,7 +225,7 @@ function MBD_Configure()
             if (DecurseSpellArray[spellName]) then
 
                 MBD.Session.Spells.HasSpells = true
-                MBD.Session.Spells.Cooldown_Check = {i, BookType};
+                MBD.Session.Spells.Cooldown_Check = {i, BookType}
 
                 if spellName == MBD_SPELL_CURE_DISEASE or spellName == MBD_SPELL_ABOLISH_DISEASE or
                     spellName == MBD_SPELL_PURIFY or spellName == MBD_SPELL_CLEANSE then
@@ -195,7 +249,7 @@ function MBD_Configure()
      
                 if spellName == MBD_SPELL_REMOVE_CURSE or spellName == MBD_SPELL_REMOVE_LESSER_CURSE then
                     MBD.Session.Spells.Curse.Can_Cure_Curse = true
-                    MBD.Session.Spells.Curse.Curse_1_1 = {i, BookType, spellName}
+                    MBD.Session.Spells.Curse.Curse_1 = {i, BookType, spellName}
                 end
      
                 if spellName == MBD_SPELL_DISPELL_MAGIC or spellName == MBD_SPELL_CLEANSE or 
@@ -227,6 +281,43 @@ function MBD_Configure()
     -- PrintSpells()
 end
 
+function MBD_ReConfigure()
+
+    if not MBD.Session.Spells.HasSpells then
+        return
+    end
+
+    local magic = MBD.Session.Spells.Magic
+    local diseases = MBD.Session.Spells.Disease
+    local poisons = MBD.Session.Spells.Poison
+    local curses = MBD.Session.Spells.Curse
+
+    local DoNotReconfigure = true
+
+    DoNotReconfigure = MBD_CheckSpellName(magic.Magic_1[1], magic.Magic_1[2], magic.Magic_1[3])
+                      and MBD_CheckSpellName(magic.Magic_2[1], magic.Magic_2[2], magic.Magic_2[3])
+                      and MBD_CheckSpellName(magic.Enemy_Magic_1[1], magic.Enemy_Magic_1[2], magic.Enemy_Magic_1[3])
+                      and MBD_CheckSpellName(magic.Enemy_Magic_2[1], magic.Enemy_Magic_2[2], magic.Enemy_Magic_2[3])
+                      and MBD_CheckSpellName(diseases.Disease_1[1], diseases.Disease_1[2], diseases.Disease_1[3])
+                      and MBD_CheckSpellName(diseases.Disease_2[1], diseases.Disease_2[2], diseases.Disease_2[3])
+                      and MBD_CheckSpellName(poisons.Poison_1[1], poisons.Poison_1[2], poisons.Poison_1[3])
+                      and MBD_CheckSpellName(poisons.Poison_2[1], poisons.Poison_2[2], poisons.Poison_2[3])
+                      and MBD_CheckSpellName(curses.Curse_1[1], curses.Curse_1[2], curses.Curse_1[3])
+
+    if not DoNotReconfigure then
+        MBD_Configure()
+    end
+end
+
+function MBD_CheckSpellName(id, booktype, spellname)
+    if id ~= 0 then
+        local foundSpellName, spellRank = GetSpellName(id, booktype)
+        return spellname == foundSpellName
+    end
+    return true
+end
+
+
 function MBD_VerifyOrderList()
     
     local i, j = 0, 0
@@ -257,6 +348,35 @@ function MBD_VerifyOrderList()
 
     MBD.Session.CureOrderList = TempTable
 end
+
+function MBD_CheckSpellName(id, booktype, spellname)
+
+    if id ~= 0  then
+	    local found_spellname, spellrank = GetSpellName(id, booktype)
+        if spellname ~= found_spellname then
+            return false
+        end
+    end
+    return true
+end
+
+function MBD_SpellCastFailed()
+    if (MBD.Session.CastingOn and not (UnitIsUnit(MBD.Session.CastingOn, "player"))) then
+        MBD.Session.Blacklist.List[MBD.Session.CastingOn] = nil
+        MBD.Session.Blacklist.List[MBD.Session.CastingOn] = MoronBoxDecursive_Options.Slider.Seconds_On_Blacklist
+        MBD.Session.Blacklist.CleanList[MBD.Session.CastingOn] = true
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Scanning functionalties {{{
+-------------------------------------------------------------------------------
+
+
+
+
+
+
 
 function PrintSpells()
     -- Print Magic Spells
