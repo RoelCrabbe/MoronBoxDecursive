@@ -45,12 +45,7 @@ MBD.Session = {
 		[3] = MBD_POISON,
 		[4] = MBD_DISEASE
     },
-    Curing_Functions = {
-        [1] = MBD_Cure_Magic,
-        [2] = MBD_Cure_Curse,
-        [3] = MBD_Cure_Poison,
-        [4] = MBD_Cure_Disease
-    },
+    Curing_Functions = { },
     Spells = {
         HasSpells = false,
         Magic = {
@@ -97,6 +92,11 @@ MBD.Session = {
         Cache = {},
         Cache_LifeTime = 30,
         Time = 0
+    },
+    Buff = {
+        Cache = {},
+        Cache_LifeTime = 30,
+        Time = 0
     }
 }
 
@@ -122,7 +122,6 @@ do
         MBD:RegisterEvent(event)
     end
 end
-
 
 function MBD:OnEvent()
     if ( event == "ADDON_LOADED" and arg1 == "MoronBoxDecursive" ) then
@@ -187,6 +186,14 @@ function MBD:OnUpdate()
         if (MBD.Session.Debuff.Time < 0) then
             MBD.Session.Debuff.Time = 0
             MBD.Session.Debuff.Cache = {}
+        end
+    end
+
+    if (MBD.Session.Buff.Time ~= 0) then
+        MBD.Session.Buff.Time = MBD.Session.Buff.Time - MBD.Session.Elapsed
+        if (MBD.Session.Buff.Time < 0) then
+            MBD.Session.Buff.Time = 0
+            MBD.Session.Buff.Cache = {}
         end
     end
 
@@ -329,7 +336,6 @@ function MBD_Configure()
     }
 
     MBD_VerifyOrderList()
-    PrintSpells()
 end
 
 function MBD_ReConfigure()
@@ -792,9 +798,6 @@ function MBD_GetUnitDebuffAll(unit)
     return ThisUnitDebuffs
 end
 
-
--- /run MBD_Clean()
-
 function MBD_CureUnit(Unit)
 
     local MagicCount, DiseaseCount, PoisonCount, CurseCount = 0, 0, 0, 0
@@ -985,22 +988,22 @@ function MBD_CheckUnitForBuff(Unit, BuffNameToCheck)
             break
         end
 
-        if not MBD.Session.Debuff.Cache[buffTexture] then
+        if not MBD.Session.Buff.Cache[buffTexture] then
 
             MBD_ScanningTooltipTextLeft1:SetText("")
             MBD_ScanningTooltip:SetUnitBuff(Unit, buffIndex)
             dBuffName = MBD_ScanningTooltipTextLeft1:GetText()
 
             if buffName and buffName ~= "" then
-                MBD.Session.Debuff.Time = MBD.Session.Debuff.Cache_LifeTime
-                MBD.Session.Debuff.Cache[buffTexture] = buffName
+                MBD.Session.Buff.Time = MBD.Session.Buff.Cache_LifeTime
+                MBD.Session.Buff.Cache[buffTexture] = buffName
             end
         else
-            buffName = MBD.Session.Debuff.Cache[buffTexture]
+            buffName = MBD.Session.Buff.Cache[buffTexture]
         end
 
         if buffIndex > 1 then 
-            MBD.Session.Debuff.Time = MBD.Session.Debuff.Cache_LifeTime
+            MBD.Session.Buff.Time = MBD.Session.Buff.Cache_LifeTime
         end
 
         if buffName == BuffNameToCheck then
@@ -1019,63 +1022,4 @@ function MBD_CheckUnitStealth(Unit)
 	    end
 	end
     return false
-end
-
-function PrintSpells()
-    -- Print Magic Spells
-    if MBD.Session.Spells.Magic.Magic_1[1] and MBD.Session.Spells.Magic.Magic_2[1] then
-        Print("Magic Spells:")
-        Print("  Magic Spell 1: " .. MBD.Session.Spells.Magic.Magic_1[1])
-        Print("  Magic Spell 1: " .. MBD.Session.Spells.Magic.Magic_1[2])
-        Print("  Magic Spell 1: " .. MBD.Session.Spells.Magic.Magic_1[3])
-        Print("  Magic Spell 2: " .. MBD.Session.Spells.Magic.Magic_2[1])
-        Print("  Magic Spell 2: " .. MBD.Session.Spells.Magic.Magic_2[2])
-        Print("  Magic Spell 2: " .. MBD.Session.Spells.Magic.Magic_2[3])
-        Print("  Can Cure Magic: " .. tostring(MBD.Session.Spells.Magic.Can_Cure_Magic))
-    end
-
-    -- Print Enemy Magic Spells if they exist
-    if MBD.Session.Spells.Magic.Enemy_Magic_1[1] and MBD.Session.Spells.Magic.Enemy_Magic_2[1] then
-        Print("Enemy Magic Spells:")
-        Print("  Enemy Magic Spell 1: " .. MBD.Session.Spells.Magic.Enemy_Magic_1[1])
-        Print("  Enemy Magic Spell 1: " .. MBD.Session.Spells.Magic.Enemy_Magic_1[2])
-        Print("  Enemy Magic Spell 1: " .. MBD.Session.Spells.Magic.Enemy_Magic_1[3])
-        Print("  Enemy Magic Spell 2: " .. MBD.Session.Spells.Magic.Enemy_Magic_2[1])
-        Print("  Enemy Magic Spell 2: " .. MBD.Session.Spells.Magic.Enemy_Magic_2[2])
-        Print("  Enemy Magic Spell 2: " .. MBD.Session.Spells.Magic.Enemy_Magic_2[3])
-        Print("  Can Cure Enemy Magic: " .. tostring(MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic))
-    end
-
-    -- Print Disease Spells if they exist
-    if MBD.Session.Spells.Disease.Disease_1[1] and MBD.Session.Spells.Disease.Disease_2[1] then
-        Print("Disease Spells:")
-        Print("  Disease Spell 1: " .. MBD.Session.Spells.Disease.Disease_1[1])
-        Print("  Disease Spell 1: " .. MBD.Session.Spells.Disease.Disease_1[2])
-        Print("  Disease Spell 1: " .. MBD.Session.Spells.Disease.Disease_1[3])
-        Print("  Disease Spell 2: " .. MBD.Session.Spells.Disease.Disease_2[1])
-        Print("  Disease Spell 2: " .. MBD.Session.Spells.Disease.Disease_2[2])
-        Print("  Disease Spell 2: " .. MBD.Session.Spells.Disease.Disease_2[3])
-        Print("  Can Cure Disease: " .. tostring(MBD.Session.Spells.Disease.Can_Cure_Disease))
-    end
-
-    -- Print Poison Spells if they exist
-    if MBD.Session.Spells.Poison.Poison_1[1] and MBD.Session.Spells.Poison.Poison_2[1] then
-        Print("Poison Spells:")
-        Print("  Poison Spell 1: " .. MBD.Session.Spells.Poison.Poison_1[1])
-        Print("  Poison Spell 1: " .. MBD.Session.Spells.Poison.Poison_1[2])
-        Print("  Poison Spell 1: " .. MBD.Session.Spells.Poison.Poison_1[3])
-        Print("  Poison Spell 2: " .. MBD.Session.Spells.Poison.Poison_2[1])
-        Print("  Poison Spell 2: " .. MBD.Session.Spells.Poison.Poison_2[2])
-        Print("  Poison Spell 2: " .. MBD.Session.Spells.Poison.Poison_2[3])
-        Print("  Can Cure Poison: " .. tostring(MBD.Session.Spells.Poison.Can_Cure_Poison))
-    end
-
-    -- Print Curse Spells if they exist
-    if MBD.Session.Spells.Curse.Curse_1[1] then
-        Print("Curse Spells:")
-        Print("  Curse Spell: " .. MBD.Session.Spells.Curse.Curse_1[1])
-        Print("  Curse Spell: " .. MBD.Session.Spells.Curse.Curse_1[2])
-        Print("  Curse Spell: " .. MBD.Session.Spells.Curse.Curse_1[3])
-        Print("  Can Cure Curse: " .. tostring(MBD.Session.Spells.Curse.Can_Cure_Curse))
-    end
 end
