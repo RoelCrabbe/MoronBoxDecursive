@@ -14,6 +14,16 @@ MBD_POISON  = 'Poison';
 MBD_CURSE   = 'Curse';
 MBD_CHARMED = 'Charm';
 
+MBD_CLASS_DRUID   = 'DRUID';
+MBD_CLASS_HUNTER  = 'HUNTER';
+MBD_CLASS_MAGE    = 'MAGE';
+MBD_CLASS_PALADIN = 'PALADIN';
+MBD_CLASS_PRIEST  = 'PRIEST';
+MBD_CLASS_ROGUE   = 'ROGUE';
+MBD_CLASS_SHAMAN  = 'SHAMAN';
+MBD_CLASS_WARLOCK = 'WARLOCK';
+MBD_CLASS_WARRIOR = 'WARRIOR';
+
 -- Option Frame -- 
 
 MBD_TIMEONBLACKLISTSLIDER = "Time on Blocklist: $p Sec"
@@ -37,3 +47,35 @@ MBD_SPELL_REMOVE_CURSE        = 'Remove Curse'
 MBD_SPELL_PURGE               = 'Purge'
 MBD_PET_FEL_CAST              = "Devour Magic"
 MBD_PET_DOOM_CAST             = "Dispel Magic"
+
+MBD_IGNORELIST = {
+    ["Banish"]      = true,
+    ["Phase Shift"] = true,
+}
+
+MBD_SKIP_LIST = {
+    ["Dreamless Sleep"] = true,
+    ["Greater Dreamless Sleep"] = true,
+    ["Mind Vision"] = true,
+    ["Mutating Injection"] = true,
+}
+
+MBD_SKIP_BY_CLASS_LIST = {
+    [MBD_CLASS_WARRIOR] = {
+        ["Ancient Hysteria"]   = true,
+        ["Ignite Mana"]        = true,
+        ["Tainted Mind"]       = true,
+    },
+    [MBD_CLASS_ROGUE] = {
+        ["Silence"]            = true;
+        ["Ancient Hysteria"]   = true,
+        ["Ignite Mana"]        = true,
+        ["Tainted Mind"]       = true,
+    },
+    [MBD_CLASS_HUNTER] = {
+	    ["Magma Shackles"]     = true,
+    },
+    [MBD_CLASS_MAGE] = {
+	    ["Magma Shackles"]     = true,
+    }
+}

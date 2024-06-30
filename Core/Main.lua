@@ -3,6 +3,7 @@
 -------------------------------------------------------------------------------
 
 MBD = CreateFrame("Frame", "MBD", UIParent)
+MBD.ScanningTooltip = CreateFrame("GameTooltip", "MBD_ScanningTooltip", nil, "GameTooltipTemplate")
 
 -------------------------------------------------------------------------------
 -- The Stored Variables {{{
@@ -19,7 +20,7 @@ MBD.DefaultOptions = {
 		Check_For_Abolish = true,
 		Always_Use_Best_Spell = true,
 		Random_Order = true
-	}
+	},
 }
 
 -------------------------------------------------------------------------------
@@ -72,6 +73,24 @@ MBD.Session = {
     Blacklist = {
         List = {},
         CleanList = {}
+    },
+    Group = {
+        Invalid = false,
+        InternalPrioList = {},
+        InternalSkipList = {},
+        SortingTable = {},
+        Unit_Array = {},
+        Unit_ArrayByName = {}
+    },
+    Target = {
+        Restore = true,
+        AlreadyCleanning = false,
+        Curing_Functions = {}
+    },
+    Debuff = {
+        Cache = {},
+        Cache_LifeTime = 30,
+        Time = 0
     }
 }
 
@@ -134,6 +153,10 @@ function MBD:OnEvent()
 	elseif ( event == "PLAYER_REGEN_DISABLED" ) then
 
 		MBD.Session.InCombat = true
+
+    elseif ( event == "PLAYER_ENTERING_WORLD" or event == "PARTY_MEMBERS_CHANGED" or event == "PARTY_LEADER_CHANGED" ) then
+
+		MBD.Session.Group.Invalid = true
     end
 end
 
@@ -150,6 +173,14 @@ function MBD:OnUpdate()
             
             MBD_ReConfigure()
             MBD.Session.Reconfigure.Enable = false
+        end
+    end
+
+    if (MBD.Session.Debuff.Time ~= 0) then
+        MBD.Session.Debuff.Time = MBD.Session.Debuff.Time - MBD.Session.Elapsed
+        if (MBD.Session.Debuff.Time < 0) then
+            MBD.Session.Debuff.Time = 0
+            MBD.Session.Debuff.Cache = {}
         end
     end
 end
@@ -372,6 +403,446 @@ end
 -- Scanning functionalties {{{
 -------------------------------------------------------------------------------
 
+function MBD_GetUnitArray()
+
+    if not MBD.Session.Group.Invalid then
+        return
+    end
+
+    MBD.Session.Group.InternalPrioList = {}
+    MBD.Session.Group.InternalSkipList = {}
+    MBD.Session.Group.Unit_Array = {}
+    MBD.Session.Group.SortingTable = {}
+
+    local pname
+    local SortIndex = 1
+
+    for _, pname in MoronBoxDecursive_Options.PriorityList do
+        local unit = MBD_NameToUnit(pname)
+        if unit then
+            MBD.Session.Group.InternalPrioList[pname] = unit
+            MBD.Session.Group.Unit_Array[pname] = unit
+            MBD_AddToSort(unit, SortIndex)
+            SortIndex = SortIndex + 1
+        end
+    end
+
+    for _, pname in MoronBoxDecursive_Options.SkipList do
+        local unit = MBD_NameToUnit(pname)
+        if unit then
+            MBD.Session.Group.InternalSkipList[pname] = unit
+        end
+    end
+
+    if not MBD_IsInSkipOrPriorList(MBD.Session.PlayerName) then
+        MBD.Session.Group.Unit_Array[MBD.Session.PlayerName] = "player"
+        MBD_AddToSort("player", SortIndex)
+        SortIndex = SortIndex + 1
+    end
+
+    for i = 1, 4 do
+        if UnitExists("party"..i) then
+            pname = UnitName("party"..i) or "party"..i
+            if not MBD_IsInSkipOrPriorList(pname) then
+                MBD.Session.Group.Unit_Array[pname] = "party"..i
+                MBD_AddToSort("party"..i, SortIndex)
+                SortIndex = SortIndex + 1
+            end
+        end
+    end
+
+    if GetNumRaidMembers() > 0 then
+
+        local TempRaidTable = {}
+        local CurrentGroup = 0
+
+        for i = 1, GetNumRaidMembers() do
+            local rName, _, rGroup = GetRaidRosterInfo(i)
+
+            if CurrentGroup == 0 and rName == MBD.Session.PlayerName then
+                CurrentGroup = rGroup
+            end
+
+            if CurrentGroup ~= rGroup and not MBD_IsInSkipOrPriorList(rName) then
+                TempRaidTable[i] = {
+                    rName = rName,
+                    rGroup = rGroup,
+                    rIndex = i
+                }
+            end
+        end
+
+        for _, raidMember in TempRaidTable do
+            if raidMember.rGroup > CurrentGroup then
+
+                MBD.Session.Group.Unit_Array[raidMember.rName] = "raid" .. raidMember.rIndex
+                MBD_AddToSort("raid" .. raidMember.rIndex, raidMember.rGroup * 100 + SortIndex)
+                SortIndex = SortIndex + 1
+
+            elseif raidMember.rGroup < CurrentGroup then
+
+                MBD.Session.Group.Unit_Array[raidMember.rName] = "raid" .. raidMember.rIndex
+                MBD_AddToSort("raid" .. raidMember.rIndex, raidMember.rGroup * 100 + 1000 + SortIndex)
+                SortIndex = SortIndex + 1
+            end
+        end
+
+        SortIndex = SortIndex + 8 * 100 + 1000 + 1
+    end
+
+    local TempTable = {}
+
+    for _, v in pairs(MBD.Session.Group.Unit_Array) do
+        table.insert(TempTable, v)
+    end
+
+    MBD.Session.Group.Unit_ArrayByName = MBD.Session.Group.Unit_Array
+    MBD.Session.Group.Unit_Array = TempTable
+    MBD.Session.Group.Invalid = false
+
+    table.sort(MBD.Session.Group.Unit_Array, function(a, b) return MBD.Session.Group.SortingTable[a] < MBD.Session.Group.SortingTable[b] end)
+end
+
+function MBD_NameToUnit(Name)
+    if not Name then
+        return false
+    elseif Name == UnitName("player") then
+        return "player"
+    elseif Name == UnitName("pet") then
+        return "pet"
+    elseif Name == UnitName("party1") then
+        return "party1"
+    elseif Name == UnitName("party2") then
+        return "party2"
+    elseif Name == UnitName("party3") then
+        return "party3"
+    elseif Name == UnitName("party4") then
+        return "party4"
+    elseif Name == UnitName("partypet1") then
+        return "partypet1"
+    elseif Name == UnitName("partypet2") then
+        return "partypet2"
+    elseif Name == UnitName("partypet3") then
+        return "partypet3"
+    elseif Name == UnitName("partypet4") then
+        return "partypet4"
+    else
+        local numRaidMembers = GetNumRaidMembers()
+        if numRaidMembers > 0 then
+            for i = 1, numRaidMembers do
+                local RaidName = GetRaidRosterInfo(i)
+                if Name == RaidName then
+                    return "raid" .. i
+                elseif Name == UnitName("raidpet" .. i) then
+                    return "raidpet" .. i
+                end
+            end
+        end
+    end
+    return false
+end
+
+function MBD_AddToSort(unit, index)
+    if MoronBoxDecursive_Options.CheckBox.Random_Order and (not MBD.Session.Group.InternalPrioList[UnitName(unit)]) and not UnitIsUnit(unit, "player") then
+        index = math.random(1, 3000)
+    end
+
+    MBD.Session.Group.SortingTable[unit] = index
+end
+
+-------------------------------------------------------------------------------
+
+function MBD_Clean(UseThisTarget, SwitchToTarget)
+
+    -----------------------------------------------------------------------
+    -- Setup: Ensure spellcasting settings are appropriate
+    -----------------------------------------------------------------------
+
+    -- Reset autoSelfCast if it's enabled
+    if GetCVar("autoSelfCast") == "1" then
+        SetCVar("autoSelfCast", "0")
+    end
+
+    -- Check if spells are available configure if not
+    if not MBD.Session.Spells.HasSpells then
+        MBD_Configure()
+        if not MBD.Session.Spells.HasSpells then
+            return false
+        end
+    end
+
+    MBD.Session.Target.Restore = true
+
+    -- Switch to specified target if required
+    if UseThisTarget and SwitchToTarget then
+        TargetUnit(UseThisTarget)
+        MBD.Session.Target.Restore = false
+    end
+
+    -- Prevent re-entry if already cleaning
+    if MBD.Session.Target.AlreadyCleanning then
+        return false
+    end
+
+    MBD.Session.Target.AlreadyCleanning = true
+    SpellStopTargeting()
+
+    -- Stop casting any current spell unless it's a pet spell
+    if MBD.Session.Spells.Cooldown_Check[2] ~= "pet" then
+        SpellStopCasting()
+    end
+
+    -- Check spell cooldown
+    local _, cooldown = GetSpellCooldown(MBD.Session.Spells.Cooldown_Check[1], MBD.Session.Spells.Cooldown_Check[2])
+    if cooldown ~= 0 then
+        MBD.Session.Target.AlreadyCleanning = false
+        return false
+    end
+
+    -----------------------------------------------------------------------
+    -- Target Handling
+    -----------------------------------------------------------------------
+
+    local tEnemy = false
+    local tName = nil
+    local tCleaned = false
+    MBD.Session.Blacklist.CleanList = {}
+    MBD.Session.CastingOn = nil
+
+    if UnitExists("target") then
+        if UnitIsFriend("target", "player") and not UnitIsCharmed("target") then
+            if not UseThisTarget or SwitchToTarget then
+                tCleaned = MBD_CureUnit("target")
+            end
+            tName = UnitName("target")
+        else
+            tEnemy = true
+            if UnitIsCharmed("target") then
+                if not UseThisTarget or SwitchToTarget then
+                    tCleaned = MBD_CureUnit("target")
+                end
+            end
+        end
+    end
+
+    -----------------------------------------------------------------------
+    -- Attempt to Clean Specific Target if Not Already Cleaned
+    -----------------------------------------------------------------------
+
+    if UseThisTarget and not SwitchToTarget and not tCleaned then
+        if UnitIsVisible(UseThisTarget) then
+            if MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic and UnitIsCharmed(UseThisTarget) then
+                tCleaned = MBD_CureUnit(UseThisTarget)
+            else
+                tCleaned = MBD_CureUnit(UseThisTarget)
+            end
+        end
+    end
+
+    -----------------------------------------------------------------------
+    -- Clean Party and Raid Members
+    -----------------------------------------------------------------------
+
+    if not tCleaned then
+        
+        MBD_GetUnitArray()
+        
+        -- Mind control first
+        if MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic then
+            for _, unit in ipairs(MBD.Session.Group.Unit_Array) do
+                if not MBD.Session.Blacklist.List[unit] and UnitIsVisible(unit) and UnitIsCharmed(unit) then
+                    if MBD_CureUnit(unit) then
+                        tCleaned = true
+                        break
+                    end
+                end
+            end
+        end
+
+        -- Normal cleaning
+        if not tCleaned then
+            for _, unit in ipairs(MBD.Session.Group.Unit_Array) do
+                if not MBD.Session.Blacklist.List[unit] and UnitIsVisible(unit) and not UnitIsCharmed(unit) then
+                    if MBD_CureUnit(unit) then
+                        tCleaned = true
+                        break
+                    end
+                end
+            end
+        end
+
+        -- Recheck blacklist
+        if not tCleaned then
+            for unit in pairs(MBD.Session.Blacklist.List) do
+                if not MBD.Session.Blacklist.CleanList[unit] and UnitExists(unit) and UnitIsVisible(unit) then
+                    if MBD_CureUnit(unit) then
+                        MBD.Session.Blacklist.List[unit] = nil
+                        tCleaned = true
+                        break
+                    end
+                end
+            end
+        end
+    end
+
+    -----------------------------------------------------------------------
+    -- Restore Target or Clear It if Necessary
+    -----------------------------------------------------------------------
+
+    if not SwitchToTarget then
+        if tEnemy then
+            if not UnitIsEnemy("target", "player") then
+                TargetUnit("playertarget")
+            end
+        elseif tName then
+            if tName ~= UnitName("target") then
+                TargetByName(tName)
+            end
+        else
+            if UnitExists("target") then
+                ClearTarget()
+            end
+        end
+    end
+
+    MBD.Session.Target.AlreadyCleanning = false
+    return tCleaned
+end 
+
+function MBD_GetUnitDebuffName(Unit, i, DebuffTexture)
+    local dBuffName
+
+    if not MBD.Session.Debuff.Cache[DebuffTexture] then
+        MBD_ScanningTooltipTextLeft1:SetText("")
+        MBD_ScanningTooltip:SetUnitDebuff(Unit, i)
+        dBuffName = MBD_ScanningTooltipTextLeft1:GetText()
+
+        if dBuffName == nil then
+            return false
+        elseif dBuffName ~= "" then
+            MBD.Session.Debuff.Time = MBD.Session.Debuff.Cache_LifeTime
+            MBD.Session.Debuff.Cache[DebuffTexture] = dBuffName
+        end
+    else
+        dBuffName = MBD.Session.Debuff.Cache[DebuffTexture]
+    end
+
+    MBD.Session.Debuff.Cache_life = MBD.Session.Debuff.Cache_LifeTime
+    return dBuffName
+end
+
+
+function MBD_GetUnitDebuff(Unit, i)
+    
+    local dBuffTexture, dBuffApplications, dBuffType = UnitDebuff(Unit, i)
+
+    if (dBuffTexture) then
+	    dBuffName = MBD_GetUnitDebuffName(Unit, i, dBuffTexture)
+	    return dBuffName, dBuffType, dBuffApplications, dBuffTexture
+    else
+	    return false, false, false, false
+    end
+end
+
+function MBD_GetUnitDebuffAll(unit)
+
+    local dBuffTexture, dBuffApplications, dBuffType, dBuffName, i
+    local ThisUnitDebuffs = {}
+    local i = 1
+
+    while (true) do
+	    dBuffName, dBuffType, dBuffApplications, dBuffTexture = MBD_GetUnitDebuff(unit, i)
+
+        if (not dBuffName) then
+            break
+        end
+
+        ThisUnitDebuffs[dBuffName] = {}
+        ThisUnitDebuffs[dBuffName].dBuffTexture	= dBuffTexture
+        ThisUnitDebuffs[dBuffName].dBuffApplications = dBuffApplications
+        ThisUnitDebuffs[dBuffName].dBuffType	= dBuffType
+        ThisUnitDebuffs[dBuffName].dBuffName	= dBuffName
+        ThisUnitDebuffs[dBuffName].index		= i
+
+        i = i + 1
+    end
+    return ThisUnitDebuffs
+end
+
+function MBD_CureUnit(Unit)
+    
+    local MagicCount, DiseaseCount, PoisonCount, CurseCount = 0, 0, 0, 0
+    local _, UnitClass = UnitClass(Unit)
+    local AllUnitDebuffs = MBD_GetUnitDebuffAll(Unit)
+    local Result = false
+    
+    for debuffName, debuffParams in AllUnitDebuffs do
+        local shouldContinue = true
+
+        if MBD_IGNORELIST[debuffName] then
+            return false
+        end
+
+        if MBD_SKIP_LIST[debuffName] then
+            shouldContinue = false
+        end
+
+        if MBD.Session.InCombat and MBD_SKIP_BY_CLASS_LIST[UnitClass] and MBD_SKIP_BY_CLASS_LIST[UnitClass][debuffName] then
+            shouldContinue = false
+        end
+
+        if shouldContinue then
+            if debuffParams.dBuffType and debuffParams.dBuffType ~= "" then
+                if debuffParams.dBuffType == MBD_MAGIC then
+                    MagicCount = MagicCount + debuffParams.dBuffApplications + 1
+                elseif debuffParams.dBuffType == MBD_DISEASE then
+                    DiseaseCount = DiseaseCount + debuffParams.dBuffApplications + 1
+                elseif debuffParams.dBuffType == MBD_POISON then
+                    PoisonCount = PoisonCount + debuffParams.dBuffApplications + 1
+                elseif debuffParams.dBuffType == MBD_CURSE then
+                    CurseCount = CurseCount + debuffParams.dBuffApplications + 1
+                end
+            end
+        end
+    end
+
+    local DecurseCount = {
+        MagicCount = MagicCount,
+        CurseCount = CurseCount,
+        PoisonCount = PoisonCount,
+        DiseaseCount = DiseaseCount
+    }
+    
+    for i = 1, 4 do
+        if MBD.Session.Target.Curing_Functions[i] then
+            Result = MBD.Session.Target.Curing_Functions[i](DecurseCount, Unit)
+            if Result then break end
+        end
+    end
+    return Result
+end
+
+function MBD_Cure_Magic(counts, Unit)
+
+    if not (MBD.Session.Spells.Magic.Can_Cure_Magic or MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic) or counts.MagicCount == 0 then
+        return false
+    end
+
+    if MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic and UnitIsCharmed(Unit) and UnitCanAttack("player", Unit) then
+        if MBD.Session.Spells.Magic.Enemy_Magic_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or counts.MagicCount > 1 or MBD.Session.Spells.Magic.Magic_1[1] == 0) then
+            return Dcr_Cast_CureSpell(MBD.Session.Spells.Magic.Enemy_Magic_2, Unit, MBD_CHARMED, true)
+        else
+            return Dcr_Cast_CureSpell(MBD.Session.Spells.Magic.Enemy_Magic_1, Unit, MBD_CHARMED, true)
+        end
+    elseif MBD.Session.Spells.Magic.Can_Cure_Magic and not UnitCanAttack("player", Unit) then
+        if MBD.Session.Spells.Magic.Magic_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or counts.MagicCount > 1 or MBD.Session.Spells.Magic.Magic_1[1] == 0) then
+            return Dcr_Cast_CureSpell(MBD.Session.Spells.Magic.Magic_2, Unit, MBD_MAGIC, MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic)
+        else
+            return Dcr_Cast_CureSpell(MBD.Session.Spells.Magic.Magic_1, Unit, MBD_MAGIC, MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic)
+        end
+    end
+    return false
+end
 
 
 
