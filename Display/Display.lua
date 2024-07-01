@@ -653,7 +653,7 @@ function MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
     local Frame = CreateFrame("Frame", Name, Parent)
     Frame:SetBackdrop(BackDrop)
     MBD_SetSize(Frame, 160, 35)
-    MBD_SetBackdropColor(Frame, "Gray400")
+    MBD_SetBackdropColor(Frame, "Gray600")
 
     local DebuffTextureOne = Frame:CreateTexture(nil, "ARTWORK")
     MBD_SetSize(DebuffTextureOne, 30, 30)
@@ -664,12 +664,14 @@ function MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
 
     local Name = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     MBD_SetSize(Name, 145, 10)
+    MBD_SetFontSize(Name, 12)
     Name:SetPoint("CENTER", Frame, "CENTER", 0, 8)
     Name:SetText("Name")
     Frame.Name = Name
 
     local Affliction = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     MBD_SetSize(Affliction, 145, 10)
+    MBD_SetFontSize(Affliction, 11)
     Affliction:SetPoint("CENTER", Frame, "CENTER", 0, -8)
     Affliction:SetText("Affliction")
     Frame.Affliction = Affliction
@@ -687,7 +689,7 @@ end
 
 function MBD_CreateAfflictedListItem(Parent, Name, RelativeTo)
     local Item = MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
-    Item:SetPoint("TOPLEFT", RelativeTo, "BOTTOMLEFT", 0, -5) -- Adjust if needed
+    Item:SetPoint("TOPLEFT", RelativeTo, "BOTTOMLEFT", 0, -5)
     return Item
 end
 
@@ -699,10 +701,10 @@ function MBD_CreateAfflictedList(Parent)
     AfflictedList:SetPoint("TOP", Parent, "BOTTOM", 0, 5)
     Parent.AfflictedList = AfflictedList
 
-    for i = 1, 5 do
-        local PreviousItem = i == 1 and AfflictedList or AfflictedList["ListItem" .. (i - 1)]
-        local Item = MBD_CreateAfflictedListItem(AfflictedList, "$parentListItem" .. i, PreviousItem)
-        AfflictedList["ListItem" .. i] = Item
+    for i = 1, MBD.Session.Amount_Of_Afflicted do
+        local PreviousItem = i == 1 and AfflictedList or AfflictedList["ListItem"..(i - 1)]
+        local Item = MBD_CreateAfflictedListItem(AfflictedList, "$parentListItem"..i, PreviousItem)
+        AfflictedList["ListItem"..i] = Item
     end
 
     return AfflictedList

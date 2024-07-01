@@ -34,6 +34,7 @@ MBD.Session = {
     CastingOn = nil,
     InCombat = nil,
     Elapsed = 0,
+    Amount_Of_Afflicted = 5,
     Reconfigure = {
         Enable = false,
         Time = 0,
@@ -96,6 +97,9 @@ MBD.Session = {
     Buff = {
         Cache = {},
         Cache_LifeTime = 30,
+        Time = 0
+    },
+    Display = {
         Time = 0
     }
 }
@@ -167,8 +171,6 @@ end
 
 MBD:SetScript("OnEvent", MBD.OnEvent) 
 
-local MBD_timeLeft = 0;
-
 function MBD:OnUpdate()
     MBD.Session.Elapsed = arg1
 
@@ -206,42 +208,30 @@ function MBD:OnUpdate()
         end
     end
 
-    MBD_timeLeft = MBD_timeLeft - MBD.Session.Elapsed
-    if (MBD_timeLeft <= 0) then
-        MBD_timeLeft = MoronBoxDecursive_Options.Slider.ScanFrequency;
+    MBD.Session.Display.Time = MBD.Session.Display.Time - MBD.Session.Elapsed
+    if (MBD.Session.Display.Time <= 0) then
+        MBD.Session.Display.Time = MoronBoxDecursive_Options.Slider.ScanFrequency
 
-        local index = 1;
-        local targetexists = false;
+        local Index = 1
+        local TargetExists = false
         MBD_GetUnitArray()
-
-        if (UnitExists("target") and UnitIsFriend("target", "player")) then
-            if (UnitIsVisible("target")) then
-            targetexists = true;
-            if (MBD_ScanUnit("target", index)) then
-                index = index + 1;
-            end
+        
+        if UnitExists("target") and UnitIsFriend("target", "player") and UnitIsVisible("target") then
+            TargetExists = true
+            if MBD_ScanUnit("target", Index) then
+                Index = Index + 1
             end
         end
-
-        for _, unit in MBD.Session.Group.Unit_Array do
-            if (UnitIsVisible(unit) and not (targetexists and UnitIsUnit(unit, "target"))) then
-                if (not UnitIsCharmed(unit)) then
-                    if (MBD_ScanUnit(unit, index)) then
-
-                    index = index + 1;
-                    end
+        
+        for _, unit in ipairs(MBD.Session.Group.Unit_Array) do
+            if UnitIsVisible(unit) and (not (TargetExists and UnitIsUnit(unit, "target"))) and (not UnitIsCharmed(unit)) then
+                if MBD_ScanUnit(unit, Index) then
+                    Index = Index + 1
                 end
             end
-        end
-
-        local i;
-        for i = index, 5 do
-            local Index = i;
-            local baseFrame = "MoronBoxDecursiveAfflictedListFrame"
-            local afflictedList = getglobal(baseFrame)
-            local item = afflictedList["ListItem" .. Index]
-            item:Hide()
-        end
+        end        
+        
+        MBD_HideAfflictedItemsFromIndex(Index)
     end
 end
 
@@ -256,10 +246,6 @@ end
 -------------------------------------------------------------------------------
 -- Spell Configure {{{
 -------------------------------------------------------------------------------
-
-function MBD_Init()
-    MBD_Configure()
-end
 
 function MBD_Configure()
 
@@ -406,15 +392,6 @@ function MBD_ReConfigure()
     end
 end
 
-function MBD_CheckSpellName(id, booktype, spellname)
-    if id ~= 0 then
-        local foundSpellName, spellRank = GetSpellName(id, booktype)
-        return spellname == foundSpellName
-    end
-    return true
-end
-
-
 function MBD_VerifyOrderList()
     
     local i, j = 0, 0
@@ -446,11 +423,10 @@ function MBD_VerifyOrderList()
     MBD.Session.CureOrderList = TempTable
 end
 
-function MBD_CheckSpellName(id, booktype, spellname)
-
-    if id ~= 0  then
-	    local found_spellname, spellrank = GetSpellName(id, booktype)
-        if spellname ~= found_spellname then
+function MBD_CheckSpellName(Id, BookType, SpellName)
+    if Id ~= 0 then
+        local FoundSpellName, SpellRank = GetSpellName(Id, BookType)
+        if SpellName ~= FoundSpellName then
             return false
         end
     end
@@ -541,14 +517,14 @@ function MBD_GetUnitArray()
         for _, raidMember in TempRaidTable do
             if raidMember.rGroup > CurrentGroup then
 
-                MBD.Session.Group.Unit_Array[raidMember.rName] = "raid" .. raidMember.rIndex
-                MBD_AddToSort("raid" .. raidMember.rIndex, raidMember.rGroup * 100 + SortIndex)
+                MBD.Session.Group.Unit_Array[raidMember.rName] = "raid"..raidMember.rIndex
+                MBD_AddToSort("raid"..raidMember.rIndex, raidMember.rGroup * 100 + SortIndex)
                 SortIndex = SortIndex + 1
 
             elseif raidMember.rGroup < CurrentGroup then
 
-                MBD.Session.Group.Unit_Array[raidMember.rName] = "raid" .. raidMember.rIndex
-                MBD_AddToSort("raid" .. raidMember.rIndex, raidMember.rGroup * 100 + 1000 + SortIndex)
+                MBD.Session.Group.Unit_Array[raidMember.rName] = "raid"..raidMember.rIndex
+                MBD_AddToSort("raid"..raidMember.rIndex, raidMember.rGroup * 100 + 1000 + SortIndex)
                 SortIndex = SortIndex + 1
             end
         end
@@ -598,9 +574,9 @@ function MBD_NameToUnit(Name)
             for i = 1, numRaidMembers do
                 local RaidName = GetRaidRosterInfo(i)
                 if Name == RaidName then
-                    return "raid" .. i
-                elseif Name == UnitName("raidpet" .. i) then
-                    return "raidpet" .. i
+                    return "raid"..i
+                elseif Name == UnitName("raidpet"..i) then
+                    return "raidpet"..i
                 end
             end
         end
@@ -608,12 +584,12 @@ function MBD_NameToUnit(Name)
     return false
 end
 
-function MBD_AddToSort(unit, index)
-    if MoronBoxDecursive_Options.CheckBox.Random_Order and (not MBD.Session.Group.InternalPrioList[UnitName(unit)]) and not UnitIsUnit(unit, "player") then
-        index = math.random(1, 3000)
+function MBD_AddToSort(Unit, Index)
+    if MoronBoxDecursive_Options.CheckBox.Random_Order and (not MBD.Session.Group.InternalPrioList[UnitName(Unit)]) and not UnitIsUnit(Unit, "player") then
+        Index = math.random(1, 3000)
     end
 
-    MBD.Session.Group.SortingTable[unit] = index
+    MBD.Session.Group.SortingTable[Unit] = Index
 end
 
 -------------------------------------------------------------------------------
@@ -647,7 +623,6 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
 
     -- Prevent re-entry if already cleaning
     if MBD.Session.Target.AlreadyCleanning then
-        Print("yea")
         return false
     end
 
@@ -718,7 +693,6 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
         if MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic then
             for _, unit in ipairs(MBD.Session.Group.Unit_Array) do
                 if not MBD.Session.Blacklist.List[unit] and UnitIsVisible(unit) and UnitIsCharmed(unit) then
-                    Print(unit)
                     if MBD_CureUnit(unit) then
                         tCleaned = true
                         break
@@ -786,9 +760,9 @@ function MBD_GetUnitdBuffName(Unit, i, DebuffTexture)
         MBD_ScanningTooltip:SetUnitDebuff(Unit, i)
         dBuffName = MBD_ScanningTooltipTextLeft1:GetText()
 
-        if dBuffName == nil then
+        if not dBuffName or dBuffName == "" then
             return false
-        elseif dBuffName ~= "" then
+        else
             MBD.Session.Debuff.Time = MBD.Session.Debuff.Cache_LifeTime
             MBD.Session.Debuff.Cache[DebuffTexture] = dBuffName
         end
@@ -893,19 +867,19 @@ function MBD_CureUnit(Unit)
     return Result
 end
 
-function MBD_Cast_CureSpell(spellID, Unit, AfflictionType, ClearCurrentTarget)
+function MBD_Cast_CureSpell(SpellID, Unit, AfflictionType, ClearCurrentTarget)
+    
+    local Name = UnitName(Unit)
 
-    local name = UnitName(Unit)
-
-    if spellID[1] == 0 then
+    if SpellID[1] == 0 then
         return false
     end
 
-    if spellID[2] ~= BOOKTYPE_PET and not CheckInteractDistance(Unit, 4) then
+    if SpellID[2] ~= BOOKTYPE_PET and not CheckInteractDistance(Unit, 4) then
         return false
     end
 
-    local spellName = GetSpellName(spellID[1], spellID[2])
+    local SpellName = GetSpellName(SpellID[1], SpellID[2])
 
     if ClearCurrentTarget then
         if not UnitIsUnit("target", Unit) then
@@ -917,14 +891,14 @@ function MBD_Cast_CureSpell(spellID, Unit, AfflictionType, ClearCurrentTarget)
         end
     end
 
-    if spellID[2] == BOOKTYPE_PET or spellID[3] == MBD_SPELL_PURGE then
+    if SpellID[2] == BOOKTYPE_PET or SpellID[3] == MBD_SPELL_PURGE then
         TargetUnit(Unit)
     end
 
     MBD.Session.CastingOn = Unit
-    CastSpell(spellID[1], spellID[2])
+    CastSpell(SpellID[1], SpellID[2])
 
-    if MBD.Session.Target.Restore and (spellID[2] == BOOKTYPE_PET or spellID[3] == MBD_SPELL_PURGE) then
+    if MBD.Session.Target.Restore and (SpellID[2] == BOOKTYPE_PET or SpellID[3] == MBD_SPELL_PURGE) then
         TargetUnit("playertarget")
     else
         if SpellIsTargeting() then
@@ -935,24 +909,23 @@ function MBD_Cast_CureSpell(spellID, Unit, AfflictionType, ClearCurrentTarget)
     if SpellIsTargeting() then
         SpellStopTargeting()
     end
-
     return true
 end
 
-function MBD_Cure_Magic(counts, Unit)
+function MBD_Cure_Magic(Counts, Unit)
 
-    if not (MBD.Session.Spells.Magic.Can_Cure_Magic or MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic) or counts.MagicCount == 0 then
+    if not (MBD.Session.Spells.Magic.Can_Cure_Magic or MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic) or Counts.MagicCount == 0 then
         return false
     end
 
     if MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic and UnitIsCharmed(Unit) and UnitCanAttack("player", Unit) then
-        if MBD.Session.Spells.Magic.Enemy_Magic_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or counts.MagicCount > 1 or MBD.Session.Spells.Magic.Magic_1[1] == 0) then
+        if MBD.Session.Spells.Magic.Enemy_Magic_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or Counts.MagicCount > 1 or MBD.Session.Spells.Magic.Magic_1[1] == 0) then
             return MBD_Cast_CureSpell(MBD.Session.Spells.Magic.Enemy_Magic_2, Unit, MBD_CHARMED, true)
         else
             return MBD_Cast_CureSpell(MBD.Session.Spells.Magic.Enemy_Magic_1, Unit, MBD_CHARMED, true)
         end
     elseif MBD.Session.Spells.Magic.Can_Cure_Magic and not UnitCanAttack("player", Unit) then
-        if MBD.Session.Spells.Magic.Magic_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or counts.MagicCount > 1 or MBD.Session.Spells.Magic.Magic_1[1] == 0) then
+        if MBD.Session.Spells.Magic.Magic_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or Counts.MagicCount > 1 or MBD.Session.Spells.Magic.Magic_1[1] == 0) then
             return MBD_Cast_CureSpell(MBD.Session.Spells.Magic.Magic_2, Unit, MBD_MAGIC, MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic)
         else
             return MBD_Cast_CureSpell(MBD.Session.Spells.Magic.Magic_1, Unit, MBD_MAGIC, MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic)
@@ -961,11 +934,13 @@ function MBD_Cure_Magic(counts, Unit)
     return false
 end
 
-function MBD_Cure_Curse(counts, Unit)
-    if (not MBD.Session.Spells.Curse.Can_Cure_Curse) or (counts.CurseCount == 0) then
+
+function MBD_Cure_Curse(Counts, Unit)
+
+    if not MBD.Session.Spells.Curse.Can_Cure_Curse or Counts.CurseCount == 0 then
         return false
     end
-    Print("awo")
+
     if UnitIsCharmed(Unit) then
         return
     end
@@ -973,12 +948,12 @@ function MBD_Cure_Curse(counts, Unit)
     if MBD.Session.Spells.Curse.Curse_1 ~= 0 then
         return MBD_Cast_CureSpell(MBD.Session.Spells.Curse.Curse_1, Unit, MBD_CURSE, false)
     end
-
     return false
 end
 
-function MBD_Cure_Poison(counts, Unit)
-    if (not MBD.Session.Spells.Poison.Can_Cure_Poison) or (counts.PoisonCount == 0) then
+function MBD_Cure_Poison(Counts, Unit)
+
+    if not MBD.Session.Spells.Poison.Can_Cure_Poison or Counts.PoisonCount == 0 then
         return false
     end
 
@@ -990,15 +965,16 @@ function MBD_Cure_Poison(counts, Unit)
         return false
     end
 
-    if (MBD.Session.Spells.Poison.Poison_2[1] ~= 0) and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or (counts.PoisonCount > 1)) then
+    if MBD.Session.Spells.Poison.Poison_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or Counts.PoisonCount > 1) then
         return MBD_Cast_CureSpell(MBD.Session.Spells.Poison.Poison_2, Unit, MBD_POISON, false)
     else
         return MBD_Cast_CureSpell(MBD.Session.Spells.Poison.Poison_1, Unit, MBD_POISON, false)
     end
 end
 
-function MBD_Cure_Disease(counts, Unit)
-    if (not MBD.Session.Spells.Disease.Can_Cure_Disease) or (counts.DiseaseCount == 0) then
+function MBD_Cure_Disease(Counts, Unit)
+
+    if not MBD.Session.Spells.Disease.Can_Cure_Disease or Counts.DiseaseCount == 0 then
         return false
     end
 
@@ -1007,11 +983,10 @@ function MBD_Cure_Disease(counts, Unit)
     end
 
     if MoronBoxDecursive_Options.CheckBox.Check_For_Abolish and MBD_CheckUnitForBuff(Unit, MBD_SPELL_ABOLISH_DISEASE) then
-        Print("wot?")
         return false
     end
 
-    if (MBD.Session.Spells.Disease.Disease_2[1] ~= 0) and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or (counts.DiseaseCount > 1)) then
+    if MBD.Session.Spells.Disease.Disease_2[1] ~= 0 and (MoronBoxDecursive_Options.CheckBox.Always_Use_Best_Spell or Counts.DiseaseCount > 1) then
         return MBD_Cast_CureSpell(MBD.Session.Spells.Disease.Disease_2, Unit, MBD_DISEASE, false)
     else
         return MBD_Cast_CureSpell(MBD.Session.Spells.Disease.Disease_1, Unit, MBD_DISEASE, false)
@@ -1109,39 +1084,41 @@ function MBD_ScanUnit(Unit, Index)
     return false
 end
 
-
--- ThisUnitDebuffs[dBuffName] = {}
--- ThisUnitDebuffs[dBuffName].dBuffTexture	= dBuffTexture
--- ThisUnitDebuffs[dBuffName].dBuffApplications = dBuffApplications
--- ThisUnitDebuffs[dBuffName].dBuffType	= dBuffType
--- ThisUnitDebuffs[dBuffName].dBuffName	= dBuffName
--- ThisUnitDebuffs[dBuffName].index		= i
-
-
 function MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
     
-    -- Reverse the index calculation
-    --Index = 5 - Index  -- Adjust this if needed based on your list indexing logic
-
     local baseFrame = "MoronBoxDecursiveAfflictedListFrame"
     local afflictedList = getglobal(baseFrame)
-    local item = afflictedList["ListItem" .. Index]
+    local listItem = afflictedList["ListItem"..Index]
 
-    if not item then
-        Print("Error: No afflicted list item found for index " .. Index)
+    local afflictionText = dBuffParams.dBuffName
+    if dBuffParams.dBuffApplications and dBuffParams.dBuffApplications > 1 then
+        afflictionText = dBuffParams.dBuffApplications.."x "..dBuffParams.dBuffName
+    end
+
+    local coloredName = MBD_GetClassColoredName(Unit)
+    local colorAfflictionText = MBD_GetDebuffColored(dBuffParams.dBuffType, afflictionText)
+
+    if listItem.DebuffTextureOne:GetTexture() == dBuffParams.dBuffTexture and
+       listItem.Name:GetText() == coloredName and
+       listItem.Affliction:GetText() == afflictionText then
         return
     end
 
-    -- Update the textures and texts with debuff information
-    item.DebuffTextureOne:SetTexture(dBuffParams.dBuffTexture)
-    item.DebuffTextureTwo:SetTexture(dBuffParams.dBuffTexture)
-    item.Name:SetText(UnitName(Unit))
-    item.Affliction:SetText(dBuffParams.dBuffName)
+    listItem.DebuffTextureOne:SetTexture(dBuffParams.dBuffTexture)
+    listItem.DebuffTextureTwo:SetTexture(dBuffParams.dBuffTexture)
+    listItem.Name:SetText(coloredName)
+    listItem.Affliction:SetText(colorAfflictionText)
 
-    if dBuffParams.dBuffApplications and dBuffParams.dBuffApplications > 1 then
-        item.Affliction:SetText(dBuffParams.dBuffName .. " x" .. dBuffParams.dBuffApplications)
-    end
-
-    item:Show()
+    listItem:Show()
 end
 
+function MBD_HideAfflictedItemsFromIndex(Index)
+    for i = Index, MBD.Session.Amount_Of_Afflicted do
+        local baseFrame = "MoronBoxDecursiveAfflictedListFrame"
+        local afflictedList = getglobal(baseFrame)
+        local listItem = afflictedList["ListItem"..i]
+        if listItem then
+            listItem:Hide()
+        end
+    end
+end
