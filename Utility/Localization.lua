@@ -8,21 +8,21 @@ MBD_HIDE = 'Close'
 MBD_EXIT = "Get lost!"
 MBD_MINIMAPHOVER = "Click to show/hide the option frame."
 
-MBD_DISEASE = 'Disease';
-MBD_MAGIC   = 'Magic';
-MBD_POISON  = 'Poison';
-MBD_CURSE   = 'Curse';
-MBD_CHARMED = 'Charm';
+MBD_DISEASE = 'Disease'
+MBD_MAGIC   = 'Magic'
+MBD_POISON  = 'Poison'
+MBD_CURSE   = 'Curse'
+MBD_CHARMED = 'Charm'
 
-MBD_CLASS_DRUID   = 'DRUID';
-MBD_CLASS_HUNTER  = 'HUNTER';
-MBD_CLASS_MAGE    = 'MAGE';
-MBD_CLASS_PALADIN = 'PALADIN';
-MBD_CLASS_PRIEST  = 'PRIEST';
-MBD_CLASS_ROGUE   = 'ROGUE';
-MBD_CLASS_SHAMAN  = 'SHAMAN';
-MBD_CLASS_WARLOCK = 'WARLOCK';
-MBD_CLASS_WARRIOR = 'WARRIOR';
+MBD_CLASS_DRUID   = 'DRUID'
+MBD_CLASS_HUNTER  = 'HUNTER'
+MBD_CLASS_MAGE    = 'MAGE'
+MBD_CLASS_PALADIN = 'PALADIN'
+MBD_CLASS_PRIEST  = 'PRIEST'
+MBD_CLASS_ROGUE   = 'ROGUE'
+MBD_CLASS_SHAMAN  = 'SHAMAN'
+MBD_CLASS_WARLOCK = 'WARLOCK'
+MBD_CLASS_WARRIOR = 'WARRIOR'
 
 -- Option Frame -- 
 
@@ -55,15 +55,23 @@ MBD_INVISIBLE_LIST = {
 }
 
 MBD_IGNORELIST = {
-    ["Banish"]      = true,
-    ["Phase Shift"] = true,
+    ["Banish"]      	    = true,
+    ["Phase Shift"] 	    = true,
+	["Mind Control"]	    = true,
+	["Will of Hakkar"]      = true,
+	["Cause Insanity"]      = true,
+	["True Fulfillment"]    = true,
+	["Consuming Shadows"]   = true,
+	["Brood Power: Bronze"] = true,
+	["Brood Power: Blue"]   = true,
 }
 
 MBD_SKIP_LIST = {
-    ["Dreamless Sleep"] = true,
+    ["Dreamless Sleep"]         = true,
     ["Greater Dreamless Sleep"] = true,
-    ["Mind Vision"] = true,
-    ["Mutating Injection"] = true,
+    ["Mind Vision"]             = true,
+    ["Mutating Injection"]      = true,
+	["Incite Flames"]           = true,
 }
 
 MBD_SKIP_BY_CLASS_LIST = {
@@ -71,17 +79,20 @@ MBD_SKIP_BY_CLASS_LIST = {
         ["Ancient Hysteria"]   = true,
         ["Ignite Mana"]        = true,
         ["Tainted Mind"]       = true,
+        ["Curse of Tongues"]   = true,
     },
     [MBD_CLASS_ROGUE] = {
-        ["Silence"]            = true;
+        ["Silence"]            = true,
         ["Ancient Hysteria"]   = true,
         ["Ignite Mana"]        = true,
         ["Tainted Mind"]       = true,
+        ["Curse of Tongues"]   = true,
     },
     [MBD_CLASS_HUNTER] = {
-	    ["Magma Shackles"]     = true,
+        ["Magma Shackles"]     = true,
+        ["Curse of Tongues"]   = true,
     },
     [MBD_CLASS_MAGE] = {
-	    ["Magma Shackles"]     = true,
+        ["Magma Shackles"]     = true,
     }
 }
