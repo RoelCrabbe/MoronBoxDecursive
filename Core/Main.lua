@@ -167,6 +167,8 @@ end
 
 MBD:SetScript("OnEvent", MBD.OnEvent) 
 
+local MBD_timeLeft = 0;
+
 function MBD:OnUpdate()
     MBD.Session.Elapsed = arg1
 
@@ -201,6 +203,44 @@ function MBD:OnUpdate()
         MBD.Session.Blacklist.List[Unit] = MBD.Session.Blacklist.List[Unit] - MBD.Session.Elapsed
         if (MBD.Session.Blacklist.List[Unit] < 0) then
             MBD.Session.Blacklist.List[Unit] = nil
+        end
+    end
+
+    MBD_timeLeft = MBD_timeLeft - MBD.Session.Elapsed
+    if (MBD_timeLeft <= 0) then
+        MBD_timeLeft = MoronBoxDecursive_Options.Slider.ScanFrequency;
+
+        local index = 1;
+        local targetexists = false;
+        MBD_GetUnitArray()
+
+        if (UnitExists("target") and UnitIsFriend("target", "player")) then
+            if (UnitIsVisible("target")) then
+            targetexists = true;
+            if (MBD_ScanUnit("target", index)) then
+                index = index + 1;
+            end
+            end
+        end
+
+        for _, unit in MBD.Session.Group.Unit_Array do
+            if (UnitIsVisible(unit) and not (targetexists and UnitIsUnit(unit, "target"))) then
+                if (not UnitIsCharmed(unit)) then
+                    if (MBD_ScanUnit(unit, index)) then
+
+                    index = index + 1;
+                    end
+                end
+            end
+        end
+
+        local i;
+        for i = index, 5 do
+            local Index = i;
+            local baseFrame = "MoronBoxDecursiveAfflictedListFrame"
+            local afflictedList = getglobal(baseFrame)
+            local item = afflictedList["ListItem" .. Index]
+            item:Hide()
         end
     end
 end
@@ -1023,3 +1063,88 @@ function MBD_CheckUnitStealth(Unit)
 	end
     return false
 end
+
+function MBD_ScanUnit(Unit, Index)
+
+    local AllUnitDebuffs = {}
+    local _, UnitClass = UnitClass(Unit)
+    AllUnitDebuffs = MBD_GetUnitDebuffAll(Unit)
+
+    
+
+    for dBuffName, dBuffParams in AllUnitDebuffs do
+
+        if MBD_IGNORELIST[dBuffName] then
+            return false
+        end
+
+        if MBD_SKIP_LIST[dBuffName] then
+            break
+        end
+
+        if MBD.Session.InCombat and MBD_SKIP_BY_CLASS_LIST[UnitClass] and MBD_SKIP_BY_CLASS_LIST[UnitClass][dBuffName] then
+            break
+        end
+
+        Print(dBuffParams.dBuffType)
+
+        if dBuffParams.dBuffType and dBuffParams.dBuffType ~= "" then
+            if dBuffParams.dBuffType == MBD_MAGIC then
+                if UnitIsCharmed(Unit) and MBD.Session.Spells.Magic.Can_Cure_Enemy_Magic then
+                    MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
+                    return true
+                elseif not UnitIsCharmed(Unit) and MBD.Session.Spells.Magic.Can_Cure_Magic then
+                    MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
+                    return true
+                end
+            elseif dBuffParams.dBuffType == MBD_DISEASE and MBD.Session.Spells.Disease.Can_Cure_Disease then
+                MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
+                return true
+            elseif dBuffParams.dBuffType == MBD_POISON and MBD.Session.Spells.Poison.Can_Cure_Poison then
+                MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
+                return true
+            elseif dBuffParams.dBuffType == MBD_CURSE and MBD.Session.Spells.Curse.Can_Cure_Curse then
+                MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
+                return true
+            end
+        end
+    end
+    return false
+end
+
+
+-- ThisUnitDebuffs[dBuffName] = {}
+-- ThisUnitDebuffs[dBuffName].dBuffTexture	= dBuffTexture
+-- ThisUnitDebuffs[dBuffName].dBuffApplications = dBuffApplications
+-- ThisUnitDebuffs[dBuffName].dBuffType	= dBuffType
+-- ThisUnitDebuffs[dBuffName].dBuffName	= dBuffName
+-- ThisUnitDebuffs[dBuffName].index		= i
+
+
+function MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
+    
+    -- Reverse the index calculation
+    --Index = 5 - Index  -- Adjust this if needed based on your list indexing logic
+
+    local baseFrame = "MoronBoxDecursiveAfflictedListFrame"
+    local afflictedList = getglobal(baseFrame)
+    local item = afflictedList["ListItem" .. Index]
+
+    if not item then
+        Print("Error: No afflicted list item found for index " .. Index)
+        return
+    end
+
+    -- Update the textures and texts with debuff information
+    item.DebuffTextureOne:SetTexture(dBuffParams.dBuffTexture)
+    item.DebuffTextureTwo:SetTexture(dBuffParams.dBuffTexture)
+    item.Name:SetText(UnitName(Unit))
+    item.Affliction:SetText(dBuffParams.dBuffName)
+
+    if dBuffParams.dBuffApplications and dBuffParams.dBuffApplications > 1 then
+        item.Affliction:SetText(dBuffParams.dBuffName .. " x" .. dBuffParams.dBuffApplications)
+    end
+
+    item:Show()
+end
+

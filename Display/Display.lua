@@ -16,11 +16,12 @@ function MBD:CreateWindows()
 end
 
 function MBD_ResetAllWindow()
-    MBD_ResetFramePosition(MBD.MainFrame)
+    MBD.MainFrame:ClearAllPoints()
+    MBD.MainFrame:SetPoint("CENTER", nil, "TOP", 0, -50)
     MBD_ResetFramePosition(MBD.OptionFrame)
 end
 
-function MBD_OpenMainFrame()
+function MBD_OpenOptionFrame()
     if MBD.OptionFrame:IsShown() then
         MBD_CloseAllWindow()
     else 
@@ -30,7 +31,6 @@ end
 
 function MBD_CloseAllWindow()
     MBD_ResetAllWindow()
-    MBD.MainFrame:Hide()
     MBD.OptionFrame:Hide()
 end
 
@@ -172,7 +172,7 @@ function MBD.MiniMapButton:CreateMinimapIcon()
     end
 
     local function OnClick()
-        MBD_OpenMainFrame()
+        MBD_OpenOptionFrame()
     end
 
     self.Button:SetScript("OnDragStart", OnDragStart)
@@ -190,6 +190,8 @@ end
 
 function MBD.MainFrame:CreateMainFrame()
 
+    MBD_CreateMainBar(self)
+    self.AfflictedList = MBD_CreateAfflictedList(self)
 end
 
 -------------------------------------------------------------------------------
@@ -234,7 +236,6 @@ function MBD.OptionFrame:CreateOptionFrame()
         self.RandomOrderCheckButton:SetScript("OnClick", function()
             MoronBoxDecursive_Options.CheckBox.Random_Order = (self.RandomOrderCheckButton:GetChecked() == 1)
         end)
-
 
     self:Hide()
 end
@@ -571,4 +572,138 @@ function MBD_CreatePopupFrame(PopupFrame)
     PopupFrame:SetScript("OnMouseUp", PopupFrame_OnMouseUp)
     PopupFrame:SetScript("OnMouseDown", PopupFrame_OnMouseDown)
     PopupFrame:SetScript("OnHide", PopupFrame_OnMouseUp)
+end
+
+function MBD_CreateMainBar(Frame)
+    local IsMoving = false
+
+    Frame:SetFrameStrata("LOW")
+    Frame:SetBackdrop(BackDrop)
+    Frame:SetMovable(true)
+    Frame:EnableMouse(true)
+    MBD_SetSize(Frame, 120, 25)
+    MBD_SetBackdropColor(Frame, "Gray800")
+    Frame:SetPoint("CENTER", UIParent, "TOP", 0, -50)
+
+    local Title = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    Title:SetText(MBD_TITLE)
+    Title:SetPoint("CENTER", Frame, "CENTER", 0, 0)
+    Frame.Title = Title
+
+    local function Frame_OnMouseUp()
+        if IsMoving then
+            Frame:StopMovingOrSizing()
+            IsMoving = false
+        end
+    end
+
+    local function Frame_OnMouseDown()
+        if not IsMoving and arg1 == "LeftButton" then
+            Frame:StartMoving()
+            IsMoving = true
+        elseif arg1 == "RightButton" then
+            MBD_OpenOptionFrame()
+        end
+    end
+
+    Frame:SetScript("OnMouseUp", Frame_OnMouseUp)
+    Frame:SetScript("OnMouseDown", Frame_OnMouseDown)
+    Frame:SetScript("OnHide", Frame_OnMouseUp)
+end
+
+function MBD_CreateMainBar(Frame)
+    local IsMoving = false
+
+    Frame:SetFrameStrata("LOW")
+    Frame:SetBackdrop(BackDrop)
+    Frame:SetMovable(true)
+    Frame:EnableMouse(true)
+    MBD_SetSize(Frame, 120, 25)
+    MBD_SetBackdropColor(Frame, "Gray800")
+    Frame:SetPoint("CENTER", UIParent, "TOP", 0, -50)
+
+    local Title = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    Title:SetText(MBD_TITLE)
+    Title:SetPoint("CENTER", Frame, "CENTER", 0, 0)
+    Frame.Title = Title
+
+    local function Frame_OnMouseUp()
+        if IsMoving then
+            Frame:StopMovingOrSizing()
+            IsMoving = false
+        end
+    end
+
+    local function Frame_OnMouseDown()
+        if not IsMoving and arg1 == "LeftButton" then
+            Frame:StartMoving()
+            IsMoving = true
+        elseif arg1 == "RightButton" then
+            MBD_OpenOptionFrame()
+        end
+    end
+
+    Frame:SetScript("OnMouseUp", Frame_OnMouseUp)
+    Frame:SetScript("OnMouseDown", Frame_OnMouseDown)
+    Frame:SetScript("OnHide", Frame_OnMouseUp)
+end
+
+function MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
+
+    local Frame = CreateFrame("Frame", Name, Parent)
+    Frame:SetBackdrop(BackDrop)
+    MBD_SetSize(Frame, 160, 35)
+    MBD_SetBackdropColor(Frame, "Gray400")
+
+    local DebuffTextureOne = Frame:CreateTexture(nil, "ARTWORK")
+    MBD_SetSize(DebuffTextureOne, 30, 30)
+    DebuffTextureOne:SetPoint("LEFT", Frame, "LEFT", 3, 0)
+    DebuffTextureOne:SetTexture("Interface\\Icons\\Spell_Holy_DispelMagic")
+    DebuffTextureOne:SetTexCoord(0.075, 0.925, 0.075, 0.925)
+    Frame.DebuffTextureOne = DebuffTextureOne
+
+    local Name = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    MBD_SetSize(Name, 145, 10)
+    Name:SetPoint("CENTER", Frame, "CENTER", 0, 8)
+    Name:SetText("Name")
+    Frame.Name = Name
+
+    local Affliction = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    MBD_SetSize(Affliction, 145, 10)
+    Affliction:SetPoint("CENTER", Frame, "CENTER", 0, -8)
+    Affliction:SetText("Affliction")
+    Frame.Affliction = Affliction
+
+    local DebuffTextureTwo = Frame:CreateTexture(nil, "ARTWORK")
+    MBD_SetSize(DebuffTextureTwo, 30, 30)
+    DebuffTextureTwo:SetPoint("RIGHT", Frame, "RIGHT", -3, 0)
+    DebuffTextureTwo:SetTexture("Interface\\Icons\\Spell_Holy_DispelMagic")
+    DebuffTextureTwo:SetTexCoord(0.075, 0.925, 0.075, 0.925)
+    Frame.DebuffTextureTwo = DebuffTextureTwo
+
+    Frame:Hide()
+    return Frame
+end
+
+function MBD_CreateAfflictedListItem(Parent, Name, RelativeTo)
+    local Item = MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
+    Item:SetPoint("TOPLEFT", RelativeTo, "BOTTOMLEFT", 0, -5) -- Adjust if needed
+    return Item
+end
+
+function MBD_CreateAfflictedList(Parent)
+    if not Parent then return end
+
+    local AfflictedList = CreateFrame("Frame", "MoronBoxDecursiveAfflictedListFrame", Parent)
+    MBD_SetSize(AfflictedList, 160, 1)
+    AfflictedList:SetPoint("TOP", Parent, "BOTTOM", 0, 5)
+    Parent.AfflictedList = AfflictedList
+
+    for i = 1, 5 do
+        local PreviousItem = i == 1 and AfflictedList or AfflictedList["ListItem" .. (i - 1)]
+        local Item = MBD_CreateAfflictedListItem(AfflictedList, "$parentListItem" .. i, PreviousItem)
+        AfflictedList["ListItem" .. i] = Item
+    end
+
+    return AfflictedList
 end
