@@ -986,7 +986,7 @@ function MBD_Cure_Poison(counts, Unit)
         return
     end
 
-    if MoronBoxDecursive_Options.CheckBox.Check_For_Abolish and MBD_CheckUnitForBuff(Unit, MBD_SPELL_ABOLISH_DISEASE) then
+    if MoronBoxDecursive_Options.CheckBox.Check_For_Abolish and MBD_CheckUnitForBuff(Unit, MBD_SPELL_ABOLISH_POISON) then
         return false
     end
 
@@ -1007,6 +1007,7 @@ function MBD_Cure_Disease(counts, Unit)
     end
 
     if MoronBoxDecursive_Options.CheckBox.Check_For_Abolish and MBD_CheckUnitForBuff(Unit, MBD_SPELL_ABOLISH_DISEASE) then
+        Print("wot?")
         return false
     end
 
@@ -1032,7 +1033,7 @@ function MBD_CheckUnitForBuff(Unit, BuffNameToCheck)
 
             MBD_ScanningTooltipTextLeft1:SetText("")
             MBD_ScanningTooltip:SetUnitBuff(Unit, buffIndex)
-            dBuffName = MBD_ScanningTooltipTextLeft1:GetText()
+            buffName = MBD_ScanningTooltipTextLeft1:GetText()
 
             if buffName and buffName ~= "" then
                 MBD.Session.Buff.Time = MBD.Session.Buff.Cache_LifeTime
@@ -1070,8 +1071,6 @@ function MBD_ScanUnit(Unit, Index)
     local _, UnitClass = UnitClass(Unit)
     AllUnitDebuffs = MBD_GetUnitDebuffAll(Unit)
 
-    
-
     for dBuffName, dBuffParams in AllUnitDebuffs do
 
         if MBD_IGNORELIST[dBuffName] then
@@ -1085,8 +1084,6 @@ function MBD_ScanUnit(Unit, Index)
         if MBD.Session.InCombat and MBD_SKIP_BY_CLASS_LIST[UnitClass] and MBD_SKIP_BY_CLASS_LIST[UnitClass][dBuffName] then
             break
         end
-
-        Print(dBuffParams.dBuffType)
 
         if dBuffParams.dBuffType and dBuffParams.dBuffType ~= "" then
             if dBuffParams.dBuffType == MBD_MAGIC then
