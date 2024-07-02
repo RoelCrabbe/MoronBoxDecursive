@@ -50,6 +50,7 @@ local ColorPicker = {
     Gray400 = { r = 0.706, g = 0.706, b = 0.706, a = 1 },   -- #b4b4b4
     Gray500 = { r = 0.608, g = 0.608, b = 0.608, a = 1 },   -- #9b9b9b
     Gray600 = { r = 0.404, g = 0.404, b = 0.404, a = 1 },   -- #676767
+    Gray650 = { r = 0.404, g = 0.404, b = 0.404, a = 0.45 },   -- #676767
     Gray700 = { r = 0.259, g = 0.259, b = 0.259, a = 1 },   -- #424242
     Gray800 = { r = 0.184, g = 0.184, b = 0.184, a = 1 },   -- #2f2f2f
 
@@ -336,22 +337,6 @@ function MBD_CreateInnerContainer(Parent)
     return InnerContainer
 end
 
-function MBD_CreateSmallInnerContainer(Parent, Title)
-    if not Parent or not Title then return end
-
-    local SmallInnerContainer = CreateFrame("Frame", nil, Parent)
-    SmallInnerContainer:SetBackdrop(BackDrop)
-    MBD_SetSize(SmallInnerContainer, 350, 200)
-    MBD_SetBackdropColor(SmallInnerContainer, "Gray600")
-
-    local ContainerTitle = SmallInnerContainer:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    ContainerTitle:SetText(Title)
-    ContainerTitle:SetPoint("TOPRIGHT", SmallInnerContainer, "TOPRIGHT", -5, 14)
-    SmallInnerContainer.ContainerTitle = ContainerTitle
-
-    return SmallInnerContainer
-end
-
 function MBD_DefaultFrameTemplate(Frame)
     local IsMoving = false
 
@@ -456,50 +441,6 @@ function MBD_InitializeSlider(Slider, String, Value, MinStep, MaxStep, ValStep)
     maxValueText:SetPoint("CENTER", Slider, "RIGHT", 10, 0)
 end
 
-function MBD_CreateEditBox(Parent, Name, PlaceHolder, Width, Height)
-    if not Parent or not Name then return end
-
-    PlaceHolder = PlaceHolder or ""
-    Width = Width or 50
-    Height = Height or 20
-
-    local EditBox = CreateFrame("EditBox", nil, Parent)
-    EditBox:SetText(PlaceHolder)
-    EditBox:SetAutoFocus(false)
-    EditBox:SetMaxLetters(256)
-    EditBox:SetFontObject(GameFontHighlight)
-    MBD_SetSize(EditBox, Width, Height)
-
-    EditBox.LeftCurve = EditBox:CreateTexture(nil, "BACKGROUND")
-    MBD_SetSize(EditBox.LeftCurve, 12, 29)
-    EditBox.LeftCurve:SetPoint("TOPLEFT", -11, 2)
-    EditBox.LeftCurve:SetTexture("Interface/ClassTrainerFrame/UI-ClassTrainer-FilterBorder")
-    EditBox.LeftCurve:SetTexCoord(0, 0.09375, 0, 1.0)
-
-    EditBox.RightCurve = EditBox:CreateTexture(nil, "BACKGROUND")
-    MBD_SetSize(EditBox.RightCurve, 12, 29)
-    EditBox.RightCurve:SetPoint("TOPRIGHT", 4, 2)
-    EditBox.RightCurve:SetTexture("Interface/ClassTrainerFrame/UI-ClassTrainer-FilterBorder")
-    EditBox.RightCurve:SetTexCoord(0.90625, 1.0, 0, 1.0)
-
-    EditBox.MiddleTexture = EditBox:CreateTexture(nil, "BACKGROUND")
-    EditBox.MiddleTexture:SetPoint("TOPLEFT", EditBox.LeftCurve, "TOPRIGHT")
-    EditBox.MiddleTexture:SetPoint("BOTTOMRIGHT", EditBox.RightCurve, "BOTTOMLEFT")
-    EditBox.MiddleTexture:SetTexture("Interface/ClassTrainerFrame/UI-ClassTrainer-FilterBorder")
-    EditBox.MiddleTexture:SetTexCoord(0.09375, 0.90625, 0, 1.0)
-
-    local EditBoxText = EditBox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    EditBoxText:SetText(Name)
-    EditBoxText:SetPoint("RIGHT", EditBox, "LEFT", -40, 0)
-    EditBox.EditBoxText = EditBoxText
-
-    EditBox:SetScript("OnEscapePressed", function()
-        EditBox:ClearFocus()
-    end)
-
-    return EditBox
-end
-
 function MBD_CreateCheckButton(Parent, Title, Value, XAsis)
     if not Parent or not Title then return end
 
@@ -517,104 +458,10 @@ function MBD_CreateCheckButton(Parent, Title, Value, XAsis)
     return CheckButton
 end
 
-function MBD_CreatePopupFrame(PopupFrame)
-    local IsMoving = false
-
-    PopupFrame:SetFrameStrata("HIGH")
-    PopupFrame:SetMovable(true)
-    PopupFrame:EnableMouse(true)
-    PopupFrame:SetBackdrop(BackDrop)
-    MBD_SetSize(PopupFrame, 300, 110)
-    MBD_SetBackdropColor(PopupFrame, "Gray800")
-
-    local PopupFrameText = PopupFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    PopupFrameText:SetText(MBD_RELOADUI)
-    PopupFrameText:SetPoint("CENTER", PopupFrame, "CENTER", 0, 0)
-    PopupFrame.PopupFrameText = PopupFrameText
-
-    local AcceptButton = MBD_CreateButton(PopupFrame, MBD_YES, 100) 
-    AcceptButton:SetPoint("BOTTOMLEFT", PopupFrame, "BOTTOMLEFT", 5, 7.5)
-    PopupFrame.AcceptButton = AcceptButton
-
-    local function AcceptButton_OnEnter()
-        MBD_SetBackdropColor(AcceptButton, "Green600")
-    end
-
-    AcceptButton:SetScript("OnEnter", AcceptButton_OnEnter)
-
-    local DeclineButton = MBD_CreateButton(PopupFrame, MBD_NO, 100) 
-    DeclineButton:SetPoint("BOTTOMRIGHT", PopupFrame, "BOTTOMRIGHT", -5, 7.5)
-    PopupFrame.DeclineButton = DeclineButton
-
-    local function DeclineButton_OnEnter()
-        MBD_SetBackdropColor(DeclineButton, "Red500")
-    end
-
-    DeclineButton:SetScript("OnEnter", DeclineButton_OnEnter)
-    DeclineButton:SetScript("OnClick", function()
-        PopupFrame:Hide()
-    end)
-
-    local function PopupFrame_OnMouseUp()
-        if IsMoving then
-            PopupFrame:StopMovingOrSizing()
-            IsMoving = false
-        end
-    end
-
-    local function PopupFrame_OnMouseDown()
-        if not IsMoving and arg1 == "LeftButton" then
-            PopupFrame:StartMoving()
-            IsMoving = true
-        end
-    end
-
-    PopupFrame:SetScript("OnMouseUp", PopupFrame_OnMouseUp)
-    PopupFrame:SetScript("OnMouseDown", PopupFrame_OnMouseDown)
-    PopupFrame:SetScript("OnHide", PopupFrame_OnMouseUp)
-end
-
 function MBD_CreateMainBar(Frame)
     local IsMoving = false
 
-    Frame:SetFrameStrata("LOW")
-    Frame:SetBackdrop(BackDrop)
-    Frame:SetMovable(true)
-    Frame:EnableMouse(true)
-    MBD_SetSize(Frame, 120, 25)
-    MBD_SetBackdropColor(Frame, "Gray800")
-    Frame:SetPoint("CENTER", UIParent, "TOP", 0, -50)
-
-    local Title = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    Title:SetText(MBD_TITLE)
-    Title:SetPoint("CENTER", Frame, "CENTER", 0, 0)
-    Frame.Title = Title
-
-    local function Frame_OnMouseUp()
-        if IsMoving then
-            Frame:StopMovingOrSizing()
-            IsMoving = false
-        end
-    end
-
-    local function Frame_OnMouseDown()
-        if not IsMoving and arg1 == "LeftButton" then
-            Frame:StartMoving()
-            IsMoving = true
-        elseif arg1 == "RightButton" then
-            MBD_OpenOptionFrame()
-        end
-    end
-
-    Frame:SetScript("OnMouseUp", Frame_OnMouseUp)
-    Frame:SetScript("OnMouseDown", Frame_OnMouseDown)
-    Frame:SetScript("OnHide", Frame_OnMouseUp)
-end
-
-function MBD_CreateMainBar(Frame)
-    local IsMoving = false
-
-    Frame:SetFrameStrata("LOW")
+    Frame:SetFrameLevel(10)
     Frame:SetBackdrop(BackDrop)
     Frame:SetMovable(true)
     Frame:EnableMouse(true)
@@ -652,8 +499,9 @@ function MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
 
     local Frame = CreateFrame("Frame", Name, Parent)
     Frame:SetBackdrop(BackDrop)
+    Frame:SetFrameLevel(10)
     MBD_SetSize(Frame, 160, 35)
-    MBD_SetBackdropColor(Frame, "Gray600")
+    MBD_SetBackdropColor(Frame, "Gray650")
 
     local DebuffTextureOne = Frame:CreateTexture(nil, "ARTWORK")
     MBD_SetSize(DebuffTextureOne, 30, 30)

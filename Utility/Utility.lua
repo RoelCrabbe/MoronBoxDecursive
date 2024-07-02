@@ -57,13 +57,13 @@ function MBD_GetDebuffColored(dBuffType, afflictionText)
     if dBuffType then
         local color = ""
         if dBuffType == "Magic" then
-            color = "|cFF6495ED"
+            color = "|cFF3296FF"
         elseif dBuffType == "Poison" then
-            color = "|cFF32CD32"
+            color = "|cFF009600"
         elseif dBuffType == "Disease" then
-            color = "|cFFFFD700"
+            color = "|cFF966400"
         elseif dBuffType == "Curse" then
-            color = "|cFF8A2BE2"
+            color = "|cFF9600FF"
         end
         return color..afflictionText.."|r"
     else
