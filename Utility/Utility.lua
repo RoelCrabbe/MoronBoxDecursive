@@ -65,7 +65,7 @@ function MBD_GetDebuffColored(dBuffType, afflictionText)
         elseif dBuffType == "Curse" then
             color = "|cFF8A2BE2"
         end
-        return color .. afflictionText .. "|r"
+        return color..afflictionText.."|r"
     else
         return afflictionText
     end
