@@ -3,8 +3,8 @@
 -------------------------------------------------------------------------------
 
 MBD = CreateFrame("Frame", "MBD", UIParent)
-MBD.ScanningTooltip = CreateFrame("GameTooltip", "MBD_ScanningTooltip", nil, "GameTooltipTemplate")
-MBD_ScanningTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+local MBD_ScanningTooltip = CreateFrame("GameTooltip", "MBD_ScanningTooltip", nil, "GameTooltipTemplate")
+local AddonInitializer = CreateFrame("Frame", nil)
 
 -------------------------------------------------------------------------------
 -- The Stored Variables {{{
@@ -101,6 +101,9 @@ MBD.Session = {
     },
     Display = {
         Time = 0
+    },
+    AddonLoader = {
+        Cooldown = 2.5
     }
 }
 
@@ -136,6 +139,9 @@ function MBD:OnEvent()
         MBD:CreateWindows()
         MBD_Configure()
     
+        MBD_ScanningTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        AddonInitializer:SetScript("OnUpdate", AddonInitializer.OnUpdate)
+
     elseif ( event == "SPELLCAST_STOP" or event ==  "SPELLCAST_INTERRUPTED" or event == "SPELLCAST_FAILED" ) then
 
         MBD.Session.CastingOn = nil
@@ -241,6 +247,23 @@ function MBD_SetupSavedVariables()
     if not MoronBoxDecursive_Options then 
         MoronBoxDecursive_Options = MBD.DefaultOptions
     end
+end
+
+function AddonInitializer:OnUpdate()
+
+    MBD.Session.AddonLoader.Cooldown = MBD.Session.AddonLoader.Cooldown - MBD.Session.Elapsed
+    if MBD.Session.AddonLoader.Cooldown > 0 then return end
+
+    MBD_PrintMessage(MBD_ADDONLOADED)
+
+    if MBD_DISABLEADDON[MBD.Session.PlayerClass] then
+        if GetAddOnInfo(MBD_TITLE) then
+            DisableAddOn(MBD_TITLE)
+            MBD_ErrorMessage(MBD_ADDONDISABLED)
+        end
+    end
+
+    AddonInitializer:SetScript("OnUpdate", nil)
 end
 
 -------------------------------------------------------------------------------

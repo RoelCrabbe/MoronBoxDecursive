@@ -14,15 +14,15 @@ MBD_POISON  = 'Poison'
 MBD_CURSE   = 'Curse'
 MBD_CHARMED = 'Charm'
 
-MBD_CLASS_DRUID   = 'DRUID'
-MBD_CLASS_HUNTER  = 'HUNTER'
-MBD_CLASS_MAGE    = 'MAGE'
-MBD_CLASS_PALADIN = 'PALADIN'
-MBD_CLASS_PRIEST  = 'PRIEST'
-MBD_CLASS_ROGUE   = 'ROGUE'
-MBD_CLASS_SHAMAN  = 'SHAMAN'
-MBD_CLASS_WARLOCK = 'WARLOCK'
-MBD_CLASS_WARRIOR = 'WARRIOR'
+MBD_CLASS_DRUID   = "Druid"
+MBD_CLASS_HUNTER  = "Hunter"
+MBD_CLASS_MAGE    = "Mage"
+MBD_CLASS_PALADIN = "Paladin"
+MBD_CLASS_PRIEST  = "Priest"
+MBD_CLASS_ROGUE   = "Rogue"
+MBD_CLASS_SHAMAN  = "Shaman"
+MBD_CLASS_WARLOCK = "Warlock"
+MBD_CLASS_WARRIOR = "Warrior"
 
 -- Option Frame -- 
 
@@ -95,4 +95,14 @@ MBD_SKIP_BY_CLASS_LIST = {
     [MBD_CLASS_MAGE] = {
         ["Magma Shackles"]     = true,
     }
+}
+
+MBD_ADDONLOADED = "Has been successfully loaded."
+MBD_ADDONDISABLED = "Addon has been disabled! Be sure to ReloadUI."
+
+MBD_DISABLEADDON = {
+    [MBD_CLASS_ROGUE] = true,
+    [MBD_CLASS_WARRIOR] = true,
+    [MBD_CLASS_HUNTER] = true,
+    [MBD_CLASS_WARLOCK] = true
 }

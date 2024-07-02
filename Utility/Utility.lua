@@ -70,3 +70,11 @@ function MBD_GetDebuffColored(dBuffType, afflictionText)
         return afflictionText
     end
 end
+
+function MBD_PrintMessage(message) 
+    DEFAULT_CHAT_FRAME:AddMessage("|cffC71585"..MBD_TITLE..": |cff00ff00"..message) 
+end
+
+function MBD_ErrorMessage(message) 
+    DEFAULT_CHAT_FRAME:AddMessage("|cffC71585"..MBD_TITLE..": |cFFFF0000"..message) 
+end
