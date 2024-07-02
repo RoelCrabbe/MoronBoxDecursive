@@ -53,6 +53,7 @@ local ColorPicker = {
     Gray650 = { r = 0.404, g = 0.404, b = 0.404, a = 0.45 },   -- #676767
     Gray700 = { r = 0.259, g = 0.259, b = 0.259, a = 1 },   -- #424242
     Gray800 = { r = 0.184, g = 0.184, b = 0.184, a = 1 },   -- #2f2f2f
+    Gray850 = { r = 0.184, g = 0.184, b = 0.184, a = 0.5 },   -- #2f2f2f
 
     -- Blue Shades
     Blue50 = { r = 0.678, g = 0.725, b = 0.776, a = 1 },    -- #adb9c6
@@ -466,7 +467,7 @@ function MBD_CreateMainBar(Frame)
     Frame:SetMovable(true)
     Frame:EnableMouse(true)
     MBD_SetSize(Frame, 120, 25)
-    MBD_SetBackdropColor(Frame, "Gray800")
+    MBD_SetBackdropColor(Frame, "Gray850")
     Frame:SetPoint("CENTER", UIParent, "TOP", 0, -50)
 
     local Title = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -497,48 +498,54 @@ end
 
 function MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
 
-    local Frame = CreateFrame("Frame", Name, Parent)
-    Frame:SetBackdrop(BackDrop)
-    Frame:SetFrameLevel(10)
-    MBD_SetSize(Frame, 160, 35)
-    MBD_SetBackdropColor(Frame, "Gray650")
+    local AfflictedButton = CreateFrame("Button", Name, Parent)
+    AfflictedButton:SetBackdrop(BackDrop)
+    AfflictedButton:SetFrameLevel(10)
+    AfflictedButton:EnableMouse(true)
+    MBD_SetSize(AfflictedButton, 160, 35)
+    MBD_SetBackdropColor(AfflictedButton, "Gray650")
 
-    local DebuffTextureOne = Frame:CreateTexture(nil, "ARTWORK")
+    local DebuffTextureOne = AfflictedButton:CreateTexture(nil, "ARTWORK")
     MBD_SetSize(DebuffTextureOne, 30, 30)
-    DebuffTextureOne:SetPoint("LEFT", Frame, "LEFT", 3, 0)
+    DebuffTextureOne:SetPoint("LEFT", AfflictedButton, "LEFT", 3, 0)
     DebuffTextureOne:SetTexture("Interface\\Icons\\Spell_Holy_DispelMagic")
     DebuffTextureOne:SetTexCoord(0.075, 0.925, 0.075, 0.925)
-    Frame.DebuffTextureOne = DebuffTextureOne
+    AfflictedButton.DebuffTextureOne = DebuffTextureOne
 
-    local Name = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local Name = AfflictedButton:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     MBD_SetSize(Name, 145, 10)
     MBD_SetFontSize(Name, 12)
-    Name:SetPoint("CENTER", Frame, "CENTER", 0, 8)
+    Name:SetPoint("CENTER", AfflictedButton, "CENTER", 0, 8)
     Name:SetText("Name")
-    Frame.Name = Name
+    AfflictedButton.Name = Name
 
-    local Affliction = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local Affliction = AfflictedButton:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     MBD_SetSize(Affliction, 145, 10)
     MBD_SetFontSize(Affliction, 11)
-    Affliction:SetPoint("CENTER", Frame, "CENTER", 0, -8)
+    Affliction:SetPoint("CENTER", AfflictedButton, "CENTER", 0, -8)
     Affliction:SetText("Affliction")
-    Frame.Affliction = Affliction
+    AfflictedButton.Affliction = Affliction
 
-    local DebuffTextureTwo = Frame:CreateTexture(nil, "ARTWORK")
+    local DebuffTextureTwo = AfflictedButton:CreateTexture(nil, "ARTWORK")
     MBD_SetSize(DebuffTextureTwo, 30, 30)
-    DebuffTextureTwo:SetPoint("RIGHT", Frame, "RIGHT", -3, 0)
+    DebuffTextureTwo:SetPoint("RIGHT", AfflictedButton, "RIGHT", -3, 0)
     DebuffTextureTwo:SetTexture("Interface\\Icons\\Spell_Holy_DispelMagic")
     DebuffTextureTwo:SetTexCoord(0.075, 0.925, 0.075, 0.925)
-    Frame.DebuffTextureTwo = DebuffTextureTwo
-
-    Frame:Hide()
-    return Frame
+    AfflictedButton.DebuffTextureTwo = DebuffTextureTwo
+    
+    AfflictedButton:Hide()
+    AfflictedButton:SetScript("OnClick", function()
+        if AfflictedButton.UnitID then
+            MBD_Clean(AfflictedButton.UnitID, false)
+        end
+    end)
+    return AfflictedButton
 end
 
 function MBD_CreateAfflictedListItem(Parent, Name, RelativeTo)
-    local Item = MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
-    Item:SetPoint("TOPLEFT", RelativeTo, "BOTTOMLEFT", 0, -5)
-    return Item
+    local listItem = MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
+    listItem:SetPoint("TOPLEFT", RelativeTo, "BOTTOMLEFT", 0, -5)
+    return listItem
 end
 
 function MBD_CreateAfflictedList(Parent)

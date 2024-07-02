@@ -26,7 +26,7 @@ MBD_CLASS_WARRIOR = 'WARRIOR'
 
 -- Option Frame -- 
 
-MBD_TIMEONBLACKLISTSLIDER = "Time on Blocklist: $p Sec"
+MBD_TIMEONBLACKLISTSLIDER = "Time on Blacklist: $p Sec"
 MBD_SCANFREQUENCYSLIDER = "Update Every: $p Sec"
 
 MBD_ABOLISHCHECK       = "Check for Abolish:"

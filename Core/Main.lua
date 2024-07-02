@@ -686,7 +686,7 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
     -----------------------------------------------------------------------
 
     if not tCleaned then
-        
+
         MBD_GetUnitArray()
         
         -- Mind control first
@@ -830,9 +830,7 @@ function MBD_CureUnit(Unit)
             shouldContinue = false
         end
 
-        Print(tostring(MBD.Session.InCombat))
         if MBD.Session.InCombat and MBD_SKIP_BY_CLASS_LIST[UnitClass] and MBD_SKIP_BY_CLASS_LIST[UnitClass][dBuffName] then
-            Print("helo from the other side")
             shouldContinue = false
         end
 
@@ -881,8 +879,6 @@ function MBD_Cast_CureSpell(SpellID, Unit, AfflictionType, ClearCurrentTarget)
         return false
     end
 
-    local SpellName = GetSpellName(SpellID[1], SpellID[2])
-
     if ClearCurrentTarget then
         if not UnitIsUnit("target", Unit) then
             ClearTarget()
@@ -909,7 +905,7 @@ function MBD_Cast_CureSpell(SpellID, Unit, AfflictionType, ClearCurrentTarget)
     end
 
     if SpellIsTargeting() then
-        SpellStopTargeting()
+	    SpellStopTargeting()
     end
     return true
 end
@@ -1106,6 +1102,7 @@ function MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
         return
     end
 
+    listItem.UnitID = Unit
     listItem.DebuffTextureOne:SetTexture(dBuffParams.dBuffTexture)
     listItem.DebuffTextureTwo:SetTexture(dBuffParams.dBuffTexture)
     listItem.Name:SetText(coloredName)
