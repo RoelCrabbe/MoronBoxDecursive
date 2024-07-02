@@ -74,28 +74,28 @@ MBD.Session = {
         Cooldown_Check = { 0, "", "" }
     },
     Blacklist = {
-        List = {},
-        CleanList = {}
+        List = { },
+        CleanList = { }
     },
     Group = {
         Invalid = false,
-        InternalPrioList = {},
-        InternalSkipList = {},
-        SortingTable = {},
-        Unit_Array = {},
-        Unit_ArrayByName = {}
+        InternalPrioList = { },
+        InternalSkipList = { },
+        SortingTable = { },
+        Unit_Array = { },
+        Unit_ArrayByName = { }
     },
     Target = {
         Restore = true,
         AlreadyCleanning = false,
     },
     Debuff = {
-        Cache = {},
+        Cache = { },
         Cache_LifeTime = 30,
         Time = 0
     },
     Buff = {
-        Cache = {},
+        Cache = { },
         Cache_LifeTime = 30,
         Time = 0
     },
@@ -121,6 +121,8 @@ do
         "UI_ERROR_MESSAGE",
         "PARTY_MEMBERS_CHANGED",
         "PARTY_LEADER_CHANGED",
+        "PLAYER_REGEN_ENABLED",
+        "PLAYER_REGEN_DISABLED"
     } 
     do 
         MBD:RegisterEvent(event)
@@ -177,33 +179,31 @@ function MBD:OnUpdate()
     if MBD.Session.Reconfigure.Enable then
         MBD.Session.Reconfigure.Time = MBD.Session.Reconfigure.Time + MBD.Session.Elapsed
         if ( MBD.Session.Reconfigure.Time >= MBD.Session.Reconfigure.Delay ) then
-
-            MBD.Session.Reconfigure.Time = 0
-            
             MBD_ReConfigure()
+            MBD.Session.Reconfigure.Time = 0
             MBD.Session.Reconfigure.Enable = false
         end
     end
 
-    if (MBD.Session.Debuff.Time ~= 0) then
+    if ( MBD.Session.Debuff.Time ~= 0 ) then
         MBD.Session.Debuff.Time = MBD.Session.Debuff.Time - MBD.Session.Elapsed
         if (MBD.Session.Debuff.Time < 0) then
             MBD.Session.Debuff.Time = 0
-            MBD.Session.Debuff.Cache = {}
+            MBD.Session.Debuff.Cache = { }
         end
     end
 
-    if (MBD.Session.Buff.Time ~= 0) then
+    if ( MBD.Session.Buff.Time ~= 0 ) then
         MBD.Session.Buff.Time = MBD.Session.Buff.Time - MBD.Session.Elapsed
-        if (MBD.Session.Buff.Time < 0) then
+        if ( MBD.Session.Buff.Time < 0 ) then
             MBD.Session.Buff.Time = 0
-            MBD.Session.Buff.Cache = {}
+            MBD.Session.Buff.Cache = { }
         end
     end
 
     for Unit in MBD.Session.Blacklist.List do
         MBD.Session.Blacklist.List[Unit] = MBD.Session.Blacklist.List[Unit] - MBD.Session.Elapsed
-        if (MBD.Session.Blacklist.List[Unit] < 0) then
+        if ( MBD.Session.Blacklist.List[Unit] < 0 ) then
             MBD.Session.Blacklist.List[Unit] = nil
         end
     end
@@ -395,8 +395,8 @@ end
 function MBD_VerifyOrderList()
     
     local i, j = 0, 0
-    local TempTable = {}
-    local SecTempTable = {}
+    local TempTable = { }
+    local SecTempTable = { }
 
     for i = 1, 4 do
         if MBD.Session.CureOrderList[i] and not MBD_tcheckforval(TempTable, MBD.Session.CureOrderList[i]) then
@@ -451,10 +451,10 @@ function MBD_GetUnitArray()
         return
     end
 
-    MBD.Session.Group.InternalPrioList = {}
-    MBD.Session.Group.InternalSkipList = {}
-    MBD.Session.Group.Unit_Array = {}
-    MBD.Session.Group.SortingTable = {}
+    MBD.Session.Group.InternalPrioList = { }
+    MBD.Session.Group.InternalSkipList = { }
+    MBD.Session.Group.Unit_Array = { }
+    MBD.Session.Group.SortingTable = { }
 
     local pname
     local SortIndex = 1
@@ -495,7 +495,7 @@ function MBD_GetUnitArray()
 
     if GetNumRaidMembers() > 0 then
 
-        local TempRaidTable = {}
+        local TempRaidTable = { }
         local CurrentGroup = 0
 
         for i = 1, GetNumRaidMembers() do
@@ -532,7 +532,7 @@ function MBD_GetUnitArray()
         SortIndex = SortIndex + 8 * 100 + 1000 + 1
     end
 
-    local TempTable = {}
+    local TempTable = { }
 
     for _, v in pairs(MBD.Session.Group.Unit_Array) do
         table.insert(TempTable, v)
@@ -648,7 +648,7 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
     local tEnemy = false
     local tName = nil
     local tCleaned = false
-    MBD.Session.Blacklist.CleanList = {}
+    MBD.Session.Blacklist.CleanList = { }
     MBD.Session.CastingOn = nil
 
     if UnitExists("target") then
@@ -790,7 +790,7 @@ end
 function MBD_GetUnitDebuffAll(unit)
 
     local dBuffTexture, dBuffApplications, dBuffType, dBuffName, i
-    local ThisUnitDebuffs = {}
+    local ThisUnitDebuffs = { }
     local i = 1
 
     while (true) do
@@ -800,7 +800,7 @@ function MBD_GetUnitDebuffAll(unit)
             break
         end
 
-        ThisUnitDebuffs[dBuffName] = {}
+        ThisUnitDebuffs[dBuffName] = { }
         ThisUnitDebuffs[dBuffName].dBuffTexture	= dBuffTexture
         ThisUnitDebuffs[dBuffName].dBuffApplications = dBuffApplications
         ThisUnitDebuffs[dBuffName].dBuffType	= dBuffType
@@ -830,7 +830,9 @@ function MBD_CureUnit(Unit)
             shouldContinue = false
         end
 
+        Print(tostring(MBD.Session.InCombat))
         if MBD.Session.InCombat and MBD_SKIP_BY_CLASS_LIST[UnitClass] and MBD_SKIP_BY_CLASS_LIST[UnitClass][dBuffName] then
+            Print("helo from the other side")
             shouldContinue = false
         end
 
@@ -1042,7 +1044,7 @@ end
 
 function MBD_ScanUnit(Unit, Index)
 
-    local AllUnitDebuffs = {}
+    local AllUnitDebuffs = { }
     local _, UnitClass = UnitClass(Unit)
     AllUnitDebuffs = MBD_GetUnitDebuffAll(Unit)
 
