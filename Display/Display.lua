@@ -501,7 +501,7 @@ function MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
     local AfflictedButton = CreateFrame("Button", Name, Parent)
     AfflictedButton:SetBackdrop(BackDrop)
     AfflictedButton:SetFrameLevel(10)
-    AfflictedButton:EnableMouse(true)
+    AfflictedButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     MBD_SetSize(AfflictedButton, 160, 35)
     MBD_SetBackdropColor(AfflictedButton, "Gray650")
 
@@ -536,7 +536,7 @@ function MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
     AfflictedButton:Hide()
     AfflictedButton:SetScript("OnClick", function()
         if AfflictedButton.UnitID then
-            MBD_Clean(AfflictedButton.UnitID, false)
+            MBD_Clean(AfflictedButton.UnitID, (arg1 == "RightButton"))
         end
     end)
     return AfflictedButton
