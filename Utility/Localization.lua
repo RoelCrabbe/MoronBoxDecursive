@@ -149,6 +149,7 @@ MBD_PRIO_BY_CLASS_LIST = {
         ["Decrepit Fever"] = true,
         ["Gehennas\' Curse"] = true,
         ["Shazzrah's Curse"] = true,
+        ["Cripple"] = true,
     }
 }
 
