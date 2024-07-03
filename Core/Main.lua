@@ -847,23 +847,22 @@ function MBD_GetUnitDebuffAll(unit)
     return ThisUnitDebuffs
 end
 
-function MBD_HandlePriorityDebuffs(unit)
-    local _, UnitClass = UnitClass(unit)
-    local AllUnitDebuffs = MBD_GetUnitDebuffAll(unit)
+function MBD_HandlePriorityDebuffs(Unit)
+    local _, UnitClass = UnitClass(Unit)
+    local AllUnitDebuffs = MBD_GetUnitDebuffAll(Unit)
     local tCleaned = false
     
     for dBuffName, _ in pairs(AllUnitDebuffs) do
         if MBD_PRIO_BY_CLASS_LIST[UnitClass] and MBD_PRIO_BY_CLASS_LIST[UnitClass][dBuffName] then
-            if MBD_CureUnit(unit) then
+            if MBD_CureUnit(Unit) then
                 tCleaned = true
                 break
             end
         end
     end
-    
+
     return tCleaned
 end
-
 
 function MBD_CureUnit(Unit)
 
