@@ -18,3 +18,43 @@ function ScanFrequencySlider_OnValueChanged()
     MoronBoxDecursive_Options.Slider.ScanFrequency = MoronBoxDecursive_Options.Slider.ScanFrequency / 10;
     MBD_SliderValueChanged(MoronBoxDecursive_Options.Slider.ScanFrequency, MBD_SCANFREQUENCYSLIDER)
 end
+
+function MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
+    
+    local baseFrame = "MoronBoxDecursiveAfflictedListFrame"
+    local afflictedList = getglobal(baseFrame)
+    local listItem = afflictedList["ListItem"..Index]
+
+    local afflictionText = dBuffParams.dBuffName
+    if dBuffParams.dBuffApplications and dBuffParams.dBuffApplications > 1 then
+        afflictionText = dBuffParams.dBuffApplications.."x "..dBuffParams.dBuffName
+    end
+
+    local coloredName = MBD_GetClassColoredName(Unit)
+    local colorAfflictionText = MBD_GetDebuffColored(dBuffParams.dBuffType, afflictionText)
+
+    if listItem.DebuffTextureOne:GetTexture() == dBuffParams.dBuffTexture and
+       listItem.Name:GetText() == coloredName and
+       listItem.Affliction:GetText() == afflictionText then
+        return
+    end
+
+    listItem.UnitID = Unit
+    listItem.DebuffTextureOne:SetTexture(dBuffParams.dBuffTexture)
+    listItem.DebuffTextureTwo:SetTexture(dBuffParams.dBuffTexture)
+    listItem.Name:SetText(coloredName)
+    listItem.Affliction:SetText(colorAfflictionText)
+
+    listItem:Show()
+end
+
+function MBD_HideAfflictedItemsFromIndex(Index)
+    for i = Index, MBD.Session.Amount_Of_Afflicted do
+        local baseFrame = "MoronBoxDecursiveAfflictedListFrame"
+        local afflictedList = getglobal(baseFrame)
+        local listItem = afflictedList["ListItem"..i]
+        if listItem then
+            listItem:Hide()
+        end
+    end
+end

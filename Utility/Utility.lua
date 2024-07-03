@@ -23,12 +23,36 @@ function MBD_tcheckforval(tab, val)
     return false
 end
 
-function MBD_IsInSkipOrPriorList(name)
-    if MBD.Session.Group.InternalSkipList[name] then
-        return true
+function MBD_NameToUnit(Name)
+
+    if not Name then
+        return false
     end
-    if MBD.Session.Group.InternalPrioList[name] then
-        return true
+    
+    if Name == UnitName("player") then
+        return "player"
+    elseif Name == UnitName("pet") then
+        return "pet"
+    end
+    
+    for i = 1, 4 do
+        if Name == UnitName("party"..i) then
+            return "party"..i
+        elseif Name == UnitName("partypet"..i) then
+            return "partypet"..i
+        end
+    end
+    
+    local numRaidMembers = GetNumGroupMembers()
+    if numRaidMembers > 0 then
+        for i = 1, numRaidMembers do
+            local RaidName = GetRaidRosterInfo(i)
+            if Name == RaidName then
+                return "raid"..i
+            elseif Name == UnitName("raidpet"..i) then
+                return "raidpet"..i
+            end
+        end
     end
     return false
 end

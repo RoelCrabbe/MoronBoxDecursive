@@ -10,6 +10,8 @@ Utility\Localization.lua
 Utility\Utility.lua
 
 Core\Main.lua
+Core\BuffData.lua
+Core\UnitData.lua
 
 Display\Actions.lua
 Display\Display.lua
