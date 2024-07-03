@@ -848,6 +848,7 @@ function MBD_GetUnitDebuffAll(unit)
 end
 
 function MBD_HandlePriorityDebuffs(Unit)
+
     local _, UnitClass = UnitClass(Unit)
     local AllUnitDebuffs = MBD_GetUnitDebuffAll(Unit)
     local tCleaned = false
@@ -860,7 +861,6 @@ function MBD_HandlePriorityDebuffs(Unit)
             end
         end
     end
-
     return tCleaned
 end
 
