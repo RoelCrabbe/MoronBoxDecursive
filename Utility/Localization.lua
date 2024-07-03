@@ -3,16 +3,16 @@
 -------------------------------------------------------------------------------
 
 MBD_TITLE = "MoronBoxDecursive"
-MBD_AUTHOR = 'MoRoN'
-MBD_HIDE = 'Close'
+MBD_AUTHOR = "MoRoN"
+MBD_HIDE = "Close"
 MBD_EXIT = "Get lost!"
 MBD_MINIMAPHOVER = "Click to show/hide the option frame."
 
-MBD_DISEASE = 'Disease'
-MBD_MAGIC   = 'Magic'
-MBD_POISON  = 'Poison'
-MBD_CURSE   = 'Curse'
-MBD_CHARMED = 'Charm'
+MBD_DISEASE = "Disease"
+MBD_MAGIC   = "Magic"
+MBD_POISON  = "Poison"
+MBD_CURSE   = "Curse"
+MBD_CHARMED = "Charm"
 
 MBD_CLASS_DRUID   = "Druid"
 MBD_CLASS_HUNTER  = "Hunter"
@@ -35,16 +35,16 @@ MBD_CURERANDOMORDER    = "Cure in Random Order:"
 
 -- Spell Configure -- 
 
-MBD_SPELL_CURE_DISEASE        = 'Cure Disease'
-MBD_SPELL_ABOLISH_DISEASE     = 'Abolish Disease'
-MBD_SPELL_PURIFY              = 'Purify'
-MBD_SPELL_CLEANSE             = 'Cleanse'
-MBD_SPELL_DISPELL_MAGIC       = 'Dispel Magic'
-MBD_SPELL_CURE_POISON         = 'Cure Poison'
-MBD_SPELL_ABOLISH_POISON      = 'Abolish Poison'
-MBD_SPELL_REMOVE_LESSER_CURSE = 'Remove Lesser Curse'
-MBD_SPELL_REMOVE_CURSE        = 'Remove Curse'
-MBD_SPELL_PURGE               = 'Purge'
+MBD_SPELL_CURE_DISEASE        = "Cure Disease"
+MBD_SPELL_ABOLISH_DISEASE     = "Abolish Disease"
+MBD_SPELL_PURIFY              = "Purify"
+MBD_SPELL_CLEANSE             = "Cleanse"
+MBD_SPELL_DISPELL_MAGIC       = "Dispel Magic"
+MBD_SPELL_CURE_POISON         = "Cure Poison"
+MBD_SPELL_ABOLISH_POISON      = "Abolish Poison"
+MBD_SPELL_REMOVE_LESSER_CURSE = "Remove Lesser Curse"
+MBD_SPELL_REMOVE_CURSE        = "Remove Curse"
+MBD_SPELL_PURGE               = "Purge"
 MBD_PET_FEL_CAST              = "Devour Magic"
 MBD_PET_DOOM_CAST             = "Dispel Magic"
 
@@ -75,11 +75,13 @@ MBD_SKIP_LIST = {
 }
 
 MBD_SKIP_BY_CLASS_LIST = {
-    [MBD_CLASS_WARRIOR] = {
-        ["Ancient Hysteria"]   = true,
-        ["Ignite Mana"]        = true,
-        ["Tainted Mind"]       = true,
+    [MBD_CLASS_HUNTER] = {
+        ["Magma Shackles"]     = true,
         ["Curse of Tongues"]   = true,
+    },
+    [MBD_CLASS_MAGE] = {
+        ["Magma Shackles"]     = true,
+        ["Detect Magic"]       = true,
     },
     [MBD_CLASS_ROGUE] = {
         ["Silence"]            = true,
@@ -88,12 +90,11 @@ MBD_SKIP_BY_CLASS_LIST = {
         ["Tainted Mind"]       = true,
         ["Curse of Tongues"]   = true,
     },
-    [MBD_CLASS_HUNTER] = {
-        ["Magma Shackles"]     = true,
+    [MBD_CLASS_WARRIOR] = {
+        ["Ancient Hysteria"]   = true,
+        ["Ignite Mana"]        = true,
+        ["Tainted Mind"]       = true,
         ["Curse of Tongues"]   = true,
-    },
-    [MBD_CLASS_MAGE] = {
-        ["Magma Shackles"]     = true,
     }
 }
 
@@ -105,4 +106,48 @@ MBD_DISABLEADDON = {
     [MBD_CLASS_WARRIOR] = true,
     [MBD_CLASS_HUNTER] = true,
     [MBD_CLASS_WARLOCK] = true
+}
+
+MBD_PRIO_BY_CLASS_LIST = {
+    [MBD_CLASS_DRUID] = {
+        ["Curse of the Plaguebringer"] = true,
+        ["Curse of Tongues"] = true,
+        ["Gehennas\' Curse"] = true,
+        ["Shazzrah's Curse"] = true,
+    },
+    [MBD_CLASS_HUNTER] = {
+        ["Curse of the Plaguebringer"] = true,
+    },
+    [MBD_CLASS_MAGE] = {
+        ["Curse of the Plaguebringer"] = true,
+    },
+    [MBD_CLASS_PALADIN] = {
+        ["Curse of the Plaguebringer"] = true,
+        ["Curse of Tongues"] = true,
+        ["Gehennas\' Curse"] = true,
+        ["Shazzrah's Curse"] = true,
+    },
+    [MBD_CLASS_PRIEST] = {
+        ["Curse of the Plaguebringer"] = true,
+        ["Curse of Tongues"] = true,
+        ["Gehennas\' Curse"] = true,
+    },
+    [MBD_CLASS_ROGUE] = {
+        ["Curse of the Plaguebringer"] = true,
+    },
+    [MBD_CLASS_SHAMAN] = {
+        ["Curse of the Plaguebringer"] = true,
+        ["Curse of Tongues"] = true,
+        ["Gehennas\' Curse"] = true,
+        ["Shazzrah's Curse"] = true,
+    },
+    [MBD_CLASS_WARLOCK] = {
+        ["Curse of the Plaguebringer"] = true,
+    },
+    [MBD_CLASS_WARRIOR] = {
+        ["Curse of the Plaguebringer"] = true,
+        ["Decrepit Fever"] = true,
+        ["Gehennas\' Curse"] = true,
+        ["Shazzrah's Curse"] = true,
+    }
 }

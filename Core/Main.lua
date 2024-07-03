@@ -608,7 +608,7 @@ function MBD_NameToUnit(Name)
 end
 
 function MBD_AddToSort(Unit, Index)
-    if MoronBoxDecursive_Options.CheckBox.Random_Order and (not MBD.Session.Group.InternalPrioList[UnitName(Unit)]) and not UnitIsUnit(Unit, "player") then
+    if MoronBoxDecursive_Options.CheckBox.Random_Order and not MBD.Session.Group.InternalPrioList[UnitName(Unit)] and not UnitIsUnit(Unit, "player") then
         Index = math.random(1, 3000)
     end
 
@@ -718,6 +718,18 @@ function MBD_Clean(UseThisTarget, SwitchToTarget)
                 if not MBD.Session.Blacklist.List[unit] and UnitIsVisible(unit) and UnitIsCharmed(unit) then
                     if MBD_CureUnit(unit) then
                         tCleaned = true
+                        break
+                    end
+                end
+            end
+        end
+
+        -- Priority cleaning
+        if not tCleaned then
+            for _, unit in ipairs(MBD.Session.Group.Unit_Array) do
+                if not MBD.Session.Blacklist.List[unit] and UnitIsVisible(unit) and not UnitIsCharmed(unit) and not MBD_CheckUnitStealth(unit) then
+                    if MBD_HandlePriorityDebuffs(unit) then
+                        tCleaned = true 
                         break
                     end
                 end
@@ -834,6 +846,24 @@ function MBD_GetUnitDebuffAll(unit)
     end
     return ThisUnitDebuffs
 end
+
+function MBD_HandlePriorityDebuffs(unit)
+    local _, UnitClass = UnitClass(unit)
+    local AllUnitDebuffs = MBD_GetUnitDebuffAll(unit)
+    local tCleaned = false
+    
+    for dBuffName, _ in pairs(AllUnitDebuffs) do
+        if MBD_PRIO_BY_CLASS_LIST[UnitClass] and MBD_PRIO_BY_CLASS_LIST[UnitClass][dBuffName] then
+            if MBD_CureUnit(unit) then
+                tCleaned = true
+                break
+            end
+        end
+    end
+    
+    return tCleaned
+end
+
 
 function MBD_CureUnit(Unit)
 
