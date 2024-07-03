@@ -13,7 +13,7 @@ MBD.DefaultOptions = {
     PriorityList = { },
     SkipList = { },
     Slider = {
-		Seconds_On_Blacklist = 4,
+		Seconds_On_Blacklist = 5,
 		ScanFrequency = 0.4
 	},
     CheckBox = {

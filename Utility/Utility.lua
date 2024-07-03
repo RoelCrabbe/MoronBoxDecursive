@@ -102,3 +102,47 @@ end
 function MBD_ErrorMessage(message) 
     DEFAULT_CHAT_FRAME:AddMessage("|cffC71585"..MBD_TITLE..": |cFFFF0000"..message) 
 end
+
+function MBD_SetDefaultValues()
+	if MoronBoxDecursive_Options then
+        MoronBoxDecursive_Options = MBD_DeepCopyTable(MBD.DefaultOptions)
+        ReloadUI()
+        return
+	end
+end
+
+-------------------------------------------------------------------------------
+-- Table Functions {{{
+-------------------------------------------------------------------------------
+
+function MBD_DeepCopyTable(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[MBD_DeepCopyTable(orig_key)] = MBD_DeepCopyTable(orig_value)
+        end
+        setmetatable(copy, MBD_DeepCopyTable(getmetatable(orig)))
+    else
+        copy = orig
+    end
+    return copy
+end
+
+function MBD_SetPresetSettings(targetTable, presetTable)
+    if type(targetTable) ~= "table" or type(presetTable) ~= "table" then
+        return
+    end
+
+    for key, value in pairs(presetTable) do
+        if type(value) == "table" then
+            if type(targetTable[key]) ~= "table" then
+                targetTable[key] = {}
+            end
+            MBD_SetPresetSettings(targetTable[key], value)
+        else
+            targetTable[key] = value
+        end
+    end
+end

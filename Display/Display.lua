@@ -8,17 +8,20 @@ setfenv(1, setmetatable(_M, {__index=_G}))
 MBD.MiniMapButton = CreateFrame("Frame", nil , Minimap)
 MBD.MainFrame = CreateFrame("Frame", nil , UIParent) 
 MBD.OptionFrame = CreateFrame("Frame", nil , UIParent) 
+MBD.PopupDefaultFrame = CreateFrame("Frame", nil , UIParent) 
 
 function MBD:CreateWindows()
     MBD.MiniMapButton:CreateMinimapIcon()
     MBD.MainFrame:CreateMainFrame()
     MBD.OptionFrame:CreateOptionFrame()
+    MBD.PopupDefaultFrame:CreatePopupDefaultFrame()
 end
 
 function MBD_ResetAllWindow()
     MBD.MainFrame:ClearAllPoints()
     MBD.MainFrame:SetPoint("CENTER", nil, "TOP", 0, -50)
     MBD_ResetFramePosition(MBD.OptionFrame)
+    MBD_ResetFramePosition(MBD.PopupDefaultFrame)
 end
 
 function MBD_OpenOptionFrame()
@@ -243,6 +246,26 @@ function MBD.OptionFrame:CreateOptionFrame()
 end
 
 -------------------------------------------------------------------------------
+-- PopupDefault Frame {{{
+-------------------------------------------------------------------------------
+
+function MBD.PopupDefaultFrame:CreatePopupDefaultFrame()
+
+    MBD_CreatePopupFrame(self)
+
+    self.PopupPresetText = self:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    self.PopupPresetText:SetText(MBD_RESTOREDEFAULTCONFIRM)
+    self.PopupPresetText:SetPoint("CENTER", self, "TOP", 0, -25)
+
+    self.AcceptButton:SetScript("OnClick", function()
+        MBD_SetDefaultValues()
+        self:Hide()
+    end)
+
+    self:Hide()
+end
+
+-------------------------------------------------------------------------------
 -- Helper Functions {{{
 -------------------------------------------------------------------------------
 
@@ -379,8 +402,8 @@ end
 
 function MBD_DefaultFrameButtons(Parent)
 
-    local CloseButton = MBD_CreateButton(Parent, MBD_HIDE, 100) 
-    CloseButton:SetPoint("CENTER", Parent, "BOTTOM", 0, 25)
+    local CloseButton = MBD_CreateButton(Parent, MBD_HIDE) 
+    CloseButton:SetPoint("BOTTOMLEFT", Parent, "BOTTOMLEFT", 10, 12.5)
     Parent.CloseButton = CloseButton
 
     local function CloseButton_OnEnter()
@@ -397,6 +420,19 @@ function MBD_DefaultFrameButtons(Parent)
     CloseButton:SetScript("OnLeave", CloseButton_OnLeave)
     CloseButton:SetScript("OnClick", function()
         Parent:Hide()
+    end)
+
+    local DefaultSettingsButton = MBD_CreateButton(Parent, MBD_RESTOREDEFAULT, 120) 
+    DefaultSettingsButton:SetPoint("LEFT", CloseButton, "RIGHT", 5, 0)
+    Parent.DefaultSettingsButton = DefaultSettingsButton
+
+    local function DefaultSettingsButton_OnEnter()
+        MBD_SetBackdropColor(DefaultSettingsButton, "Blue600")
+    end
+
+    DefaultSettingsButton:SetScript("OnEnter", DefaultSettingsButton_OnEnter)
+    DefaultSettingsButton:SetScript("OnClick", function()
+        MBD.PopupDefaultFrame:Show()
     end)
 end
 
@@ -457,6 +493,63 @@ function MBD_CreateCheckButton(Parent, Title, Value, XAsis)
     CheckButton.CheckButtonText = CheckButtonText
 
     return CheckButton
+end
+
+function MBD_CreatePopupFrame(PopupFrame)
+    local IsMoving = false
+
+    PopupFrame:SetFrameStrata("HIGH")
+    PopupFrame:SetMovable(true)
+    PopupFrame:EnableMouse(true)
+    PopupFrame:SetBackdrop(BackDrop)
+    MBD_SetSize(PopupFrame, 300, 110)
+    MBD_SetBackdropColor(PopupFrame, "Gray800")
+
+    local PopupFrameText = PopupFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    PopupFrameText:SetText(MBD_RELOADUI)
+    PopupFrameText:SetPoint("CENTER", PopupFrame, "CENTER", 0, 0)
+    PopupFrame.PopupFrameText = PopupFrameText
+
+    local AcceptButton = MBD_CreateButton(PopupFrame, MBD_YES, 100) 
+    AcceptButton:SetPoint("BOTTOMLEFT", PopupFrame, "BOTTOMLEFT", 5, 7.5)
+    PopupFrame.AcceptButton = AcceptButton
+
+    local function AcceptButton_OnEnter()
+        MBD_SetBackdropColor(AcceptButton, "Green600")
+    end
+
+    AcceptButton:SetScript("OnEnter", AcceptButton_OnEnter)
+
+    local DeclineButton = MBD_CreateButton(PopupFrame, MBD_NO, 100) 
+    DeclineButton:SetPoint("BOTTOMRIGHT", PopupFrame, "BOTTOMRIGHT", -5, 7.5)
+    PopupFrame.DeclineButton = DeclineButton
+
+    local function DeclineButton_OnEnter()
+        MBD_SetBackdropColor(DeclineButton, "Red500")
+    end
+
+    DeclineButton:SetScript("OnEnter", DeclineButton_OnEnter)
+    DeclineButton:SetScript("OnClick", function()
+        PopupFrame:Hide()
+    end)
+
+    local function PopupFrame_OnMouseUp()
+        if IsMoving then
+            PopupFrame:StopMovingOrSizing()
+            IsMoving = false
+        end
+    end
+
+    local function PopupFrame_OnMouseDown()
+        if not IsMoving and arg1 == "LeftButton" then
+            PopupFrame:StartMoving()
+            IsMoving = true
+        end
+    end
+
+    PopupFrame:SetScript("OnMouseUp", PopupFrame_OnMouseUp)
+    PopupFrame:SetScript("OnMouseDown", PopupFrame_OnMouseDown)
+    PopupFrame:SetScript("OnHide", PopupFrame_OnMouseUp)
 end
 
 function MBD_CreateMainBar(Frame)

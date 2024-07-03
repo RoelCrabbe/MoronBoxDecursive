@@ -151,3 +151,11 @@ MBD_PRIO_BY_CLASS_LIST = {
         ["Shazzrah's Curse"] = true,
     }
 }
+
+MBD_RESTOREDEFAULT = "Restore Default Settings"
+MBD_RESTOREDEFAULTCONFIRM = "Are you sure you want to restore default values?"
+MBD_RESTOREUNSUCCESS = "Unable To Reset Back To Defaults! Try And Clear WDB."
+
+MBD_RELOADUI = "(This settings will reload your UI)"
+MBD_YES = "Yes"
+MBD_NO = "No"
