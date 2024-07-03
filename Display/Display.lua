@@ -330,7 +330,7 @@ function MBD_CreateInnerContainer(Parent)
 
     local InnerContainer = CreateFrame("Frame", nil, Parent)
     InnerContainer:SetBackdrop(BackDrop)
-    MBD_SetSize(InnerContainer, 300, 300)
+    MBD_SetSize(InnerContainer, 350, 300)
     MBD_SetBackdropColor(InnerContainer, "Gray600")
     InnerContainer:SetPoint("CENTER", Parent, "CENTER", 0, 0)
     Parent.InnerContainer = InnerContainer
@@ -341,11 +341,11 @@ end
 function MBD_DefaultFrameTemplate(Frame)
     local IsMoving = false
 
-    Frame:SetFrameStrata("LOW")
+    Frame:SetFrameLevel(9)
     Frame:SetBackdrop(BackDrop)
     Frame:SetMovable(true)
     Frame:EnableMouse(true)
-    MBD_SetSize(Frame, 350, 400)
+    MBD_SetSize(Frame, 400, 400)
     MBD_SetBackdropColor(Frame, "Gray800")
 
     local Title = Frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
