@@ -1,8 +1,12 @@
 # MoronBoxDecursive
 
-## New Frame
+A supportive utility to handle decursing in MoronBoxCore. Should be able to be used separately. Based on Decursive, stripped down from all excessive options.
+
+## Frames
 ![image](https://github.com/RoelCrabbe/MoronBoxDecursive/assets/92096051/0af2f291-ca76-4ef0-a92c-b9eaa4edfcf5)
 ![image](https://github.com/RoelCrabbe/MoronBoxDecursive/assets/92096051/e36fa07a-5729-4262-be24-7cf57690181f)
+(The debuff frame is clickable)
+All frames are movable, but position won't be saved.
 
 ---
 
