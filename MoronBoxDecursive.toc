@@ -13,5 +13,5 @@ Core\Main.lua
 Core\BuffData.lua
 Core\UnitData.lua
 
-Display\Actions.lua
-Display\Display.lua
+Interface\Actions.lua
+Interface\Display.lua
