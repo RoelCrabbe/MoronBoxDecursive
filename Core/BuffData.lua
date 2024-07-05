@@ -83,7 +83,6 @@ function MBD_CheckUnitForBuff(Unit, BuffNameToCheck)
     return false
 end
 
-
 function MBD_GetUnitDebuff(Unit, i)
 
     local dBuffTexture, dBuffApplications, dBuffType = UnitDebuff(Unit, i)
