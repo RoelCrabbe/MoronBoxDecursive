@@ -298,11 +298,11 @@ function MBD_ShowToolTip(Parent, Title, Text)
     GameTooltip:SetOwner(Parent, "ANCHOR_BOTTOMLEFT")
     GameTooltip:SetText(Title, 1, 1, 0.5)
     GameTooltip:AddLine(Text)
-    ShowUIPanel(GameTooltip)
+    GameTooltip:Show()
 end
 
 function MBD_HideTooltip()
-    HideUIPanel(GameTooltip)
+    GameTooltip:Hide()
 end
 
 function MBD_GetColorValue(colorKey)
