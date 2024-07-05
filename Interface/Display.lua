@@ -463,8 +463,8 @@ function MBD_InitializeSlider(Slider, String, Value, MinStep, MaxStep, ValStep)
     Slider:SetValueStep(ValStep or 1)
     Slider:SetValue(Value)
 
-    HideUIPanel(Slider:GetName().."Low")
-    HideUIPanel(Slider:GetName().."High")
+    HideUIPanel(getglobal(Slider:GetName().."Low"))
+    HideUIPanel(getglobal(Slider:GetName().."High"))
 
     local minValueText = Slider:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     minValueText:SetText(MinStep)
