@@ -25,16 +25,16 @@ function MBD_ResetAllWindow()
 end
 
 function MBD_OpenOptionFrame()
-    if MBD.OptionFrame:IsShown() then
+    if MBD.OptionFrame:IsVisible() then
         MBD_CloseAllWindow()
     else 
-        MBD.OptionFrame:Show()
+        ShowUIPanel(MBD.OptionFrame)
     end
 end
 
 function MBD_CloseAllWindow()
     MBD_ResetAllWindow()
-    MBD.OptionFrame:Hide()
+    HideUIPanel(MBD.OptionFrame)
 end
 
 -------------------------------------------------------------------------------
@@ -241,8 +241,6 @@ function MBD.OptionFrame:CreateOptionFrame()
         self.RandomOrderCheckButton:SetScript("OnClick", function()
             MoronBoxDecursive_Options.CheckBox.Random_Order = (self.RandomOrderCheckButton:GetChecked() == 1)
         end)
-
-    self:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -259,10 +257,8 @@ function MBD.PopupDefaultFrame:CreatePopupDefaultFrame()
 
     self.AcceptButton:SetScript("OnClick", function()
         MBD_SetDefaultValues()
-        self:Hide()
+        HideUIPanel(self)
     end)
-
-    self:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -274,7 +270,7 @@ function MBD_ResetFramePosition(Frame)
 
     Frame:ClearAllPoints()
     Frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-    Frame:Hide()
+    HideUIPanel(Frame)
 end
 
 function MBD_SetBackdropColor(Frame, Color)
@@ -302,11 +298,11 @@ function MBD_ShowToolTip(Parent, Title, Text)
     GameTooltip:SetOwner(Parent, "ANCHOR_BOTTOMLEFT")
     GameTooltip:SetText(Title, 1, 1, 0.5)
     GameTooltip:AddLine(Text)
-    GameTooltip:Show()
+    ShowUIPanel(GameTooltip)
 end
 
 function MBD_HideTooltip()
-    GameTooltip:Hide()
+    HideUIPanel(GameTooltip)
 end
 
 function MBD_GetColorValue(colorKey)
@@ -398,6 +394,7 @@ function MBD_DefaultFrameTemplate(Frame)
     Frame:SetScript("OnMouseUp", Frame_OnMouseUp)
     Frame:SetScript("OnMouseDown", Frame_OnMouseDown)
     Frame:SetScript("OnHide", Frame_OnMouseUp)
+    HideUIPanel(Frame)
 end
 
 function MBD_DefaultFrameButtons(Parent)
@@ -419,7 +416,7 @@ function MBD_DefaultFrameButtons(Parent)
     CloseButton:SetScript("OnEnter", CloseButton_OnEnter)
     CloseButton:SetScript("OnLeave", CloseButton_OnLeave)
     CloseButton:SetScript("OnClick", function()
-        Parent:Hide()
+        HideUIPanel(Parent)
     end)
 
     local DefaultSettingsButton = MBD_CreateButton(Parent, MBD_RESTOREDEFAULT, 120) 
@@ -432,7 +429,7 @@ function MBD_DefaultFrameButtons(Parent)
 
     DefaultSettingsButton:SetScript("OnEnter", DefaultSettingsButton_OnEnter)
     DefaultSettingsButton:SetScript("OnClick", function()
-        MBD.PopupDefaultFrame:Show()
+        ShowUIPanel(MBD.PopupDefaultFrame)
     end)
 end
 
@@ -466,8 +463,8 @@ function MBD_InitializeSlider(Slider, String, Value, MinStep, MaxStep, ValStep)
     Slider:SetValueStep(ValStep or 1)
     Slider:SetValue(Value)
 
-    getglobal(Slider:GetName().."Low"):Hide()
-    getglobal(Slider:GetName().."High"):Hide()
+    HideUIPanel(Slider:GetName().."Low")
+    HideUIPanel(Slider:GetName().."High")
 
     local minValueText = Slider:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     minValueText:SetText(MinStep)
@@ -530,7 +527,7 @@ function MBD_CreatePopupFrame(PopupFrame)
 
     DeclineButton:SetScript("OnEnter", DeclineButton_OnEnter)
     DeclineButton:SetScript("OnClick", function()
-        PopupFrame:Hide()
+        HideUIPanel(PopupFrame)
     end)
 
     local function PopupFrame_OnMouseUp()
@@ -550,6 +547,7 @@ function MBD_CreatePopupFrame(PopupFrame)
     PopupFrame:SetScript("OnMouseUp", PopupFrame_OnMouseUp)
     PopupFrame:SetScript("OnMouseDown", PopupFrame_OnMouseDown)
     PopupFrame:SetScript("OnHide", PopupFrame_OnMouseUp)
+    HideUIPanel(PopupFrame)
 end
 
 function MBD_CreateMainBar(Frame)
@@ -626,7 +624,7 @@ function MBD_CreateDecursiveAfflictedTemplate(Name, Parent)
     DebuffTextureTwo:SetTexCoord(0.075, 0.925, 0.075, 0.925)
     AfflictedButton.DebuffTextureTwo = DebuffTextureTwo
     
-    AfflictedButton:Hide()
+    HideUIPanel(AfflictedButton)
     AfflictedButton:SetScript("OnClick", function()
         if AfflictedButton.UnitID then
             MBD_Clean(AfflictedButton.UnitID, (arg1 == "RightButton"))

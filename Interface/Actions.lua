@@ -44,8 +44,7 @@ function MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
     listItem.DebuffTextureTwo:SetTexture(dBuffParams.dBuffTexture)
     listItem.Name:SetText(coloredName)
     listItem.Affliction:SetText(colorAfflictionText)
-
-    listItem:Show()
+    ShowUIPanel(listItem)
 end
 
 function MBD_HideAfflictedItemsFromIndex(Index)
@@ -54,7 +53,7 @@ function MBD_HideAfflictedItemsFromIndex(Index)
         local afflictedList = getglobal(baseFrame)
         local listItem = afflictedList["ListItem"..i]
         if listItem then
-            listItem:Hide()
+            HideUIPanel(listItem)
         end
     end
 end
