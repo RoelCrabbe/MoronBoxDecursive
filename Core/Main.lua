@@ -242,9 +242,15 @@ end
 MBD:SetScript("OnUpdate", MBD.OnUpdate) 
 
 function MBD_SetupSavedVariables()
-    if not MoronBoxDecursive_Options then 
-        MoronBoxDecursive_Options = MBD.DefaultOptions
-    end
+    if not MoronBoxDecursive_Options  then
+		MoronBoxDecursive_Options = {}
+	end
+
+	for i in MBD.DefaultOptions do
+		if (not MoronBoxDecursive_Options[i]) then
+			MoronBoxDecursive_Options[i] = MBD.DefaultOptions[i]
+		end
+	end
 end
 
 function AddonInitializer:OnUpdate()
