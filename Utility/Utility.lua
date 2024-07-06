@@ -57,24 +57,12 @@ function MBD_NameToUnit(Name)
     return false
 end
 
-function MBD_GetClassColoredName(unit)
-    local classColors = {
-        ["Warrior"] = "|cffC79C6E",
-        ["Hunter"] = "|cffABD473",
-        ["Mage"] = "|cff69CCF0",
-        ["Rogue"] = "|cffFFF569",
-        ["Warlock"] = "|cff9482C9",
-        ["Druid"] = "|cffFF7D0A",
-        ["Shaman"] = "|cff0070DE",
-        ["Priest"] = "|cffFFFFFF",
-        ["Paladin"] = "|cffF58CBA",
-    }
-
-    local unitClass = UnitClass(unit)
-    local unitName = UnitName(unit)
-    local color = classColors[unitClass] or "|cffFFFFFF" -- Default to white if class not found
-
-    return color..unitName.."|r"
+function MBD_GetClassColoredName(Unit)
+    local _, Class = UnitClass(Unit)
+    local UnitName = UnitName(Unit)
+    local Color = RAID_CLASS_COLORS[Class] or { r = 1, g = 1, b = 1 }
+    local ColorStr = string.format("|cff%02x%02x%02x", Color.r * 255, Color.g * 255, Color.b * 255)
+    return ColorStr..UnitName.."|r"
 end
 
 function MBD_GetDebuffColored(dBuffType, afflictionText)
