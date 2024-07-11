@@ -13,23 +13,22 @@ function MBD_GetUnitArray()
     MBD.Session.Group.Unit_Array = { }
     MBD.Session.Group.SortingTable = { }
 
-    local pname
     local SortIndex = 1
 
-    for _, pname in MoronBoxDecursive_Options.PriorityList do
-        local unit = MBD_NameToUnit(pname)
+    for _, name in MoronBoxDecursive_Options.PriorityList do
+        local unit = MBD_NameToUnit(name)
         if unit then
-            MBD.Session.Group.InternalPrioList[pname] = unit
-            MBD.Session.Group.Unit_Array[pname] = unit
+            MBD.Session.Group.InternalPrioList[name] = unit
+            MBD.Session.Group.Unit_Array[name] = unit
             MBD_AddToSort(unit, SortIndex)
             SortIndex = SortIndex + 1
         end
     end
 
-    for _, pname in MoronBoxDecursive_Options.SkipList do
-        local unit = MBD_NameToUnit(pname)
+    for _, name in MoronBoxDecursive_Options.SkipList do
+        local unit = MBD_NameToUnit(name)
         if unit then
-            MBD.Session.Group.InternalSkipList[pname] = unit
+            MBD.Session.Group.InternalSkipList[name] = unit
         end
     end
 
@@ -41,9 +40,9 @@ function MBD_GetUnitArray()
 
     for i = 1, 4 do
         if UnitExists("party"..i) then
-            pname = UnitName("party"..i) or "party"..i
-            if not MBD_IsInSkipOrPriorList(pname) then
-                MBD.Session.Group.Unit_Array[pname] = "party"..i
+            local name = UnitName("party" .. i) or "party" .. i
+            if not MBD_IsInSkipOrPriorList(name) then
+                MBD.Session.Group.Unit_Array[name] = "party"..i
                 MBD_AddToSort("party"..i, SortIndex)
                 SortIndex = SortIndex + 1
             end
@@ -63,7 +62,7 @@ function MBD_GetUnitArray()
             end
 
             if CurrentGroup ~= rGroup and not MBD_IsInSkipOrPriorList(rName) then
-                TempRaidTable = { }
+                TempRaidTable[i] = { }
 
                 if (not rName) then
                     rName = rGroup.."unknown"..i
