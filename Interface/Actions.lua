@@ -24,10 +24,6 @@ function MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
     local baseFrame = "MoronBoxDecursiveAfflictedListFrame"
     local afflictedList = getglobal(baseFrame)
     local listItem = afflictedList["ListItem"..Index]
-
-    if not listItem then
-        return
-    end
     
     local afflictionText = dBuffParams.dBuffName
     if dBuffParams.dBuffApplications and dBuffParams.dBuffApplications > 1 then
