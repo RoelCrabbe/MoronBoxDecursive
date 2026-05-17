@@ -33,7 +33,8 @@ function MBD_UpdateLiveDisplay(Index, Unit, dBuffParams)
     local coloredName = MBD_GetClassColoredName(Unit)
     local colorAfflictionText = MBD_GetDebuffColored(dBuffParams.dBuffType, afflictionText)
 
-    if listItem.DebuffTextureOne:GetTexture() == dBuffParams.dBuffTexture and
+    -- Error line below VV
+    if listItem.DebuffTextureOne:GetTexture() == dBuffParams.dBuffTexture and 
        listItem.Name:GetText() == coloredName and
        listItem.Affliction:GetText() == afflictionText then
         return

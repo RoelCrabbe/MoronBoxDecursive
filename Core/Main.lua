@@ -123,6 +123,8 @@ do
         "UI_ERROR_MESSAGE",
         "PARTY_MEMBERS_CHANGED",
         "PARTY_LEADER_CHANGED",
+        "RAID_ROSTER_UPDATE",
+        "RAID_LEADER_CHANGED",
         "PLAYER_REGEN_ENABLED",
         "PLAYER_REGEN_DISABLED"
     } 
@@ -169,9 +171,15 @@ function MBD:OnEvent()
 
 		MBD.Session.InCombat = true
 
-    elseif ( event == "PLAYER_ENTERING_WORLD" or event == "PARTY_MEMBERS_CHANGED" or event == "PARTY_LEADER_CHANGED" ) then
+    elseif ( event == "PLAYER_ENTERING_WORLD" or 
+            event == "PARTY_MEMBERS_CHANGED" or 
+            event == "PARTY_LEADER_CHANGED" or 
+            event == "RAID_ROSTER_UPDATE" or
+            event == "RAID_LEADER_CHANGED" ) then
 
-		MBD.Session.Group.Invalid = true
+        MBD.Session.Group.Invalid = true
+        MBD_GetUnitArray()
+        MBD.Session.Display.Time = 0
     end
 end
 
@@ -218,22 +226,24 @@ function MBD:OnUpdate()
 
         local Index = 1
         local TargetExists = false
+        local MaxItems = MBD.Session.Amount_Of_Afflicted -- Voeg deze lijn toe
         MBD_GetUnitArray()
         
         if UnitExists("target") and UnitIsFriend("target", "player") and UnitIsVisible("target") then
             TargetExists = true
-            if MBD_ScanUnit("target", Index) then
+            if Index <= MaxItems and MBD_ScanUnit("target", Index) then -- Voeg Index check toe
                 Index = Index + 1
             end
         end
         
         for _, unit in ipairs(MBD.Session.Group.Unit_Array) do
+            if Index > MaxItems then break end -- Stop als we het maximum bereiken
             if UnitIsVisible(unit) and (not (TargetExists and UnitIsUnit(unit, "target"))) and (not UnitIsCharmed(unit)) then
                 if MBD_ScanUnit(unit, Index) then
                     Index = Index + 1
                 end
             end
-        end        
+        end    
         
         MBD_HideAfflictedItemsFromIndex(Index)
     end
